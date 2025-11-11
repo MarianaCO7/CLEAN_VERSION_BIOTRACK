@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sistema de Audio Biomecánico</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        .test-button:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        .config-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔊 Test Sistema de Audio Biomecánico</h1>
+        <p>Esta página permite probar el sistema de guía auditiva antes de integrarlo completamente.</p>
+        
+        <!-- Test 1: Inicialización -->
+        <div class="test-section">
+            <h3>🚀 Test 1: Inicialización del Sistema</h3>
+            <button class="test-button" onclick="testInitialization()">Verificar Inicialización</button>
+            <div id="init-status" class="status" style="display: none;"></div>
+        </div>
+        
+        <!-- Test 2: Mensajes de Voz -->
+        <div class="test-section">
+            <h3>🎤 Test 2: Mensajes de Voz</h3>
+            <button class="test-button" onclick="testPositioningMessage()">Posicionamiento (5s)</button>
+            <button class="test-button" onclick="testExerciseMessage()">Ejercicio (20s)</button>
+            <button class="test-button" onclick="testCompletionMessage()">Finalización</button>
+            <button class="test-button" onclick="testLanguageSwitch()">Cambiar Idioma</button>
+            <div id="voice-status" class="status" style="display: none;"></div>
+        </div>
+        
+        <!-- Test 3: Controles UI -->
+        <div class="test-section">
+            <h3>🎛️ Test 3: Controles de Usuario</h3>
+            <button class="test-button" onclick="testToggleAudio()">Toggle Audio</button>
+            <button class="test-button" onclick="testVolumeControl()">Test Volumen</button>
+            <button class="test-button" onclick="showControls()">Mostrar Controles</button>
+            <div id="ui-status" class="status" style="display: none;"></div>
+        </div>
+        
+        <!-- Test 4: Integración -->
+        <div class="test-section">
+            <h3>🔗 Test 4: Integración con Análisis</h3>
+            <button class="test-button" onclick="simulateAnalysis()">Simular Análisis Completo</button>
+            <button class="test-button" onclick="testConfigExtraction()">Test Extracción Config</button>
+            <div id="integration-status" class="status" style="display: none;"></div>
+        </div>
+        
+        <!-- Test 5: Configuración -->
+        <div class="test-section">
+            <h3>📊 Test 5: Estado del Sistema</h3>
+            <button class="test-button" onclick="showSystemStatus()">Mostrar Estado</button>
+            <div id="system-status" class="status" style="display: none;"></div>
+            <div id="config-display" class="config-display" style="display: none;"></div>
+        </div>
+        
+        <!-- Simulación de elementos DOM -->
+        <div style="display: none;">
+            <div id="test-exercise-config">
+                <h2>Flexión de Hombro</h2>
+                <p class="text-secondary">Hombro - Plano Sagital</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts del sistema de audio -->
+    <script src="/static/js/audio_config.js"></script>
+    <script src="/static/js/audio_guide_system.js"></script>
+    <script src="/static/js/audio_controls_ui.js"></script>
+    <script src="/static/js/audio_analysis_integrator.js"></script>
+    
+    <script>
+        // Variables globales para testing
+        let testResults = {
+            initialization: false,
+            voice: false,
+            ui: false,
+            integration: false
+        };
+        
+        // Test 1: Inicialización
+        function testInitialization() {
+            const status = document.getElementById('init-status');
+            status.style.display = 'block';
+            
+            if (window.audioGuide) {
+                if (window.audioGuide.isInitialized) {
+                    status.className = 'status success';
+                    status.textContent = '✅ Sistema inicializado correctamente';
+                    testResults.initialization = true;
+                } else {
+                    status.className = 'status info';
+                    status.textContent = '⏳ Sistema inicializando... espere unos segundos';
+                    
+                    setTimeout(() => {
+                        if (window.audioGuide.isInitialized) {
+                            status.className = 'status success';
+                            status.textContent = '✅ Sistema inicializado después de espera';
+                            testResults.initialization = true;
+                        } else {
+                            status.className = 'status error';
+                            status.textContent = '❌ Error: Sistema no se inicializó';
+                        }
+                    }, 3000);
+                }
+            } else {
+                status.className = 'status error';
+                status.textContent = '❌ Error: audioGuide no está disponible';
+            }
+        }
+        
+        // Test 2: Mensajes de voz
+        function testPositioningMessage() {
+            updateVoiceStatus('🧍 Probando mensaje de posicionamiento...');
+            if (window.audioGuide) {
+                window.audioGuide.startPositioningPhase({
+                    segment: 'shoulder',
+                    exercise: 'flexion',
+                    exercise_name: 'Flexión de Hombro'
+                });
+                updateVoiceStatus('✅ Mensaje de posicionamiento enviado');
+            } else {
+                updateVoiceStatus('❌ AudioGuide no disponible');
+            }
+        }
+        
+        function testExerciseMessage() {
+            updateVoiceStatus('🏃‍♂️ Probando mensaje de ejercicio...');
+            if (window.audioGuide) {
+                window.audioGuide.startExercisePhase({
+                    segment: 'shoulder',
+                    exercise: 'flexion',
+                    exercise_name: 'Flexión de Hombro'
+                });
+                updateVoiceStatus('✅ Mensaje de ejercicio enviado (incluye alertas de 5s)');
+            } else {
+                updateVoiceStatus('❌ AudioGuide no disponible');
+            }
+        }
+        
+        function testCompletionMessage() {
+            updateVoiceStatus('✅ Probando mensaje de finalización...');
+            if (window.audioGuide) {
+                window.audioGuide.completeAnalysis();
+                updateVoiceStatus('✅ Mensaje de finalización enviado');
+            } else {
+                updateVoiceStatus('❌ AudioGuide no disponible');
+            }
+        }
+        
+        function testLanguageSwitch() {
+            if (window.audioGuide) {
+                const currentLang = window.audioGuide.language;
+                const newLang = currentLang === 'es' ? 'en' : 'es';
+                window.audioGuide.setLanguage(newLang);
+                updateVoiceStatus(`🌍 Idioma cambiado de ${currentLang} a ${newLang}`);
+            } else {
+                updateVoiceStatus('❌ AudioGuide no disponible');
+            }
+        }
+        
+        function updateVoiceStatus(message) {
+            const status = document.getElementById('voice-status');
+            status.style.display = 'block';
+            status.className = 'status info';
+            status.textContent = message;
+            testResults.voice = true;
+        }
+        
+        // Test 3: Controles UI
+        function testToggleAudio() {
+            const status = document.getElementById('ui-status');
+            status.style.display = 'block';
+            
+            if (window.audioGuide) {
+                const enabled = window.audioGuide.toggle();
+                status.className = 'status success';
+                status.textContent = `🔊 Audio ${enabled ? 'activado' : 'desactivado'}`;
+                testResults.ui = true;
+            } else {
+                status.className = 'status error';
+                status.textContent = '❌ AudioGuide no disponible';
+            }
+        }
+        
+        function testVolumeControl() {
+            const status = document.getElementById('ui-status');
+            status.style.display = 'block';
+            
+            if (window.audioGuide) {
+                window.audioGuide.setVolume(0.9);
+                status.className = 'status success';
+                status.textContent = '🔊 Volumen establecido al 90%';
+                
+                // Probar mensaje con nuevo volumen
+                setTimeout(() => {
+                    window.audioGuide.speak('Probando volumen alto');
+                }, 500);
+            } else {
+                status.className = 'status error';
+                status.textContent = '❌ AudioGuide no disponible';
+            }
+        }
+        
+        function showControls() {
+            const status = document.getElementById('ui-status');
+            status.style.display = 'block';
+            
+            if (window.audioControlsUI) {
+                window.audioControlsUI.show();
+                status.className = 'status success';
+                status.textContent = '🎛️ Controles mostrados (esquina superior derecha)';
+            } else {
+                status.className = 'status info';
+                status.textContent = '⏳ Controles UI no disponibles aún';
+            }
+        }
+        
+        // Test 4: Integración
+        function simulateAnalysis() {
+            const status = document.getElementById('integration-status');
+            status.style.display = 'block';
+            status.className = 'status info';
+            status.textContent = '🔄 Iniciando simulación de análisis completo...';
+            
+            // Simular configuración de ejercicio
+            window.EXERCISE_CONFIG = {
+                segment: 'shoulder',
+                exercise: 'flexion',
+                exercise_name: 'Flexión de Hombro',
+                segment_name: 'Hombro'
+            };
+            
+            // Fase 1: Posicionamiento (5s)
+            setTimeout(() => {
+                status.textContent = '🧍 Fase 1: Posicionamiento (5 segundos)';
+                if (window.audioGuide) {
+                    window.audioGuide.startPositioningPhase(window.EXERCISE_CONFIG);
+                }
+            }, 1000);
+            
+            // Fase 2: Ejercicio (20s)
+            setTimeout(() => {
+                status.textContent = '🏃‍♂️ Fase 2: Ejercicio (20 segundos con alertas)';
+                if (window.audioGuide) {
+                    window.audioGuide.startExercisePhase(window.EXERCISE_CONFIG);
+                }
+            }, 6000);
+            
+            // Fase 3: Finalización
+            setTimeout(() => {
+                status.className = 'status success';
+                status.textContent = '✅ Fase 3: Análisis completado';
+                if (window.audioGuide) {
+                    window.audioGuide.completeAnalysis();
+                }
+                testResults.integration = true;
+            }, 27000);
+        }
+        
+        function testConfigExtraction() {
+            const status = document.getElementById('integration-status');
+            status.style.display = 'block';
+            
+            if (window.audioAnalysisIntegrator) {
+                const integrator = window.audioAnalysisIntegrator;
+                const integratorStatus = integrator.getStatus();
+                
+                status.className = 'status info';
+                status.innerHTML = `
+                    <strong>Estado del Integrador:</strong><br>
+                    • Integrado: ${integratorStatus.isIntegrated ? '✅' : '❌'}<br>
+                    • Audio Guide: ${integratorStatus.hasAudioGuide ? '✅' : '❌'}<br>
+                    • Exercise Config: ${integratorStatus.hasExerciseConfig ? '✅' : '❌'}<br>
+                    • Config: ${JSON.stringify(integratorStatus.currentExerciseConfig, null, 2)}
+                `;
+            } else {
+                status.className = 'status error';
+                status.textContent = '❌ AudioAnalysisIntegrator no disponible';
+            }
+        }
+        
+        // Test 5: Estado del sistema
+        function showSystemStatus() {
+            const status = document.getElementById('system-status');
+            const configDisplay = document.getElementById('config-display');
+            
+            status.style.display = 'block';
+            configDisplay.style.display = 'block';
+            
+            if (window.audioGuide) {
+                const audioStatus = window.audioGuide.getStatus();
+                const integratorStatus = window.audioAnalysisIntegrator?.getStatus();
+                
+                status.className = 'status info';
+                status.innerHTML = `
+                    <strong>Estado Completo del Sistema:</strong><br>
+                    • Inicialización: ${testResults.initialization ? '✅' : '❌'}<br>
+                    • Voz: ${testResults.voice ? '✅' : '❌'}<br>
+                    • UI: ${testResults.ui ? '✅' : '❌'}<br>
+                    • Integración: ${testResults.integration ? '✅' : '❌'}
+                `;
+                
+                configDisplay.textContent = JSON.stringify({
+                    audioGuide: audioStatus,
+                    integrator: integratorStatus,
+                    config: window.AUDIO_CONFIG?.defaults
+                }, null, 2);
+            } else {
+                status.className = 'status error';
+                status.textContent = '❌ Sistema no disponible';
+            }
+        }
+        
+        // Inicialización automática
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🧪 Test page loaded');
+            
+            // Auto-test después de 2 segundos
+            setTimeout(() => {
+                testInitialization();
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

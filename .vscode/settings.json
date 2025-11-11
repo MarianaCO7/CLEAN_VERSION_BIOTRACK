@@ -1,0 +1,81 @@
+{
+    // ============================================================================
+    // 🌐 SERVIDOR DE DESARROLLO
+    // ============================================================================
+    "liveServer.settings.port": 5501,
+    
+    // ============================================================================
+    // 🎨 CONFIGURACIÓN JINJA2 + HTML (Templates de Flask)
+    // ============================================================================
+    
+    // Asociar archivos .html con Jinja2 (elimina errores falsos de {{ }})
+    "files.associations": {
+        "*.html": "jinja-html"
+    },
+    
+    // Habilitar Emmet para archivos Jinja2
+    "emmet.includeLanguages": {
+        "jinja-html": "html"
+    },
+    
+    // Configuración específica para archivos Jinja2-HTML
+    "[jinja-html]": {
+        "editor.quickSuggestions": {
+            "other": true,
+            "comments": false,
+            "strings": true
+        }
+    },
+    
+    // ============================================================================
+    // 🐍 CONFIGURACIÓN PYTHON
+    // ============================================================================
+    
+    // Ruta del intérprete Python
+    "python.defaultInterpreterPath": "${workspaceFolder}/venv/Scripts/python.exe",
+    
+    // Pylance - Análisis de código
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.autoImportCompletions": true,
+    
+    // ✅ CORREGIR ERRORES DE PYLANCE CON SQLALCHEMY
+    // Desactivar warnings específicos que SQLAlchemy genera dinámicamente
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportCallIssue": "none",                    // No reportar problemas de llamadas (constructores SQLAlchemy)
+        "reportArgumentType": "none",                 // No reportar tipos de argumentos (request.form.get, etc.)
+        "reportGeneralTypeIssues": "none",           // No reportar problemas generales de tipo
+        "reportOptionalMemberAccess": "none",        // No reportar acceso a miembros opcionales
+        "reportOptionalSubscript": "none",           // No reportar subscripts opcionales
+        "reportAttributeAccessIssue": "none"         // No reportar acceso a atributos (SQLAlchemy relationships)
+    },
+    
+    // ============================================================================
+    // 📝 FORMATO Y ESTILO
+    // ============================================================================
+    
+    // Python
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true
+    },
+    
+    // JavaScript
+    "[javascript]": {
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true
+    },
+    
+    // ============================================================================
+    // 🔧 EXCLUSIONES Y OPTIMIZACIÓN
+    // ============================================================================
+    
+    // Excluir carpetas del explorador
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+        "**/.pytest_cache": true,
+        "**/venv": false,  // Mostrar venv (útil para debugging)
+        "**/.git": true
+    }
+}

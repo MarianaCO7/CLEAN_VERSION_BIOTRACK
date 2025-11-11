@@ -1,0 +1,1045 @@
+/* =============================================================================
+   RESPONSIVE FIXES - BIOTRACK SYSTEM
+   Archivo dedicado para media queries y adaptacion movil
+   Orden de carga: DESPUES de biomech_styles.css
+   ============================================================================= */
+
+/* =============================================================================
+   BREAKPOINTS ESTANDAR
+   - Desktop: 1200px+
+   - Tablet: 768px - 1199px
+   - Mobile Large: 480px - 767px
+   - Mobile Small: 320px - 479px
+   ============================================================================= */
+
+/* =============================================================================
+   TABLET (768px - 1199px)
+   ============================================================================= */
+
+@media (max-width: 1199px) {
+    /* Navbar: reducir padding y espacios */
+    .navbar-content-enhanced {
+        padding: 1rem 2rem !important; /* Era 1rem 3rem */
+        max-width: 100% !important;
+    }
+    
+    .navbar-menu-enhanced {
+        gap: 1.5rem !important; /* Era 2.5rem */
+    }
+    
+    .nav-link-enhanced {
+        padding: 10px 16px !important; /* Era 12px 20px */
+        font-size: 18px !important; /* Era 20px */
+    }
+    
+    /* Brand: reducir tamano logo */
+    .brand-icon-enhanced {
+        width: 50px !important; /* Era 60px */
+        height: 50px !important;
+    }
+    
+    .brand-logo-img {
+        width: 40px !important; /* Era 48px */
+        height: 40px !important;
+    }
+    
+    .brand-text-enhanced {
+        font-size: 1.3rem !important; /* Era 1.5rem */
+    }
+    
+    /* Usuario: reducir avatar */
+    .user-avatar-enhanced {
+        width: 50px !important; /* Era 60px */
+        height: 50px !important;
+    }
+}
+
+@media (max-width: 991px) {
+    /* Navbar: menu wrap para tablets pequenas */
+    .navbar-content-enhanced {
+        padding: 0.75rem 1.5rem !important;
+        flex-wrap: wrap !important;
+    }
+    
+    .navbar-menu-enhanced {
+        order: 3 !important; /* Mover menu abajo */
+        width: 100% !important;
+        justify-content: center !important;
+        margin-top: 0.75rem !important;
+        gap: 1rem !important;
+    }
+    
+    .navbar-brand-enhanced {
+        order: 1 !important;
+    }
+    
+    .navbar-user-enhanced {
+        order: 2 !important;
+        margin-left: auto !important;
+    }
+    
+    .nav-link-enhanced {
+        padding: 8px 12px !important;
+        font-size: 16px !important;
+    }
+}
+
+/* =============================================================================
+   MOBILE LARGE (480px - 767px)
+   ============================================================================= */
+
+@media (max-width: 767px) {
+    /* Navbar: compacto mobile */
+    .navbar-content-enhanced {
+        padding: 0.5rem 1rem !important;
+        flex-wrap: wrap !important;
+    }
+    
+    .navbar-menu-enhanced {
+        gap: 0.5rem !important;
+        margin-top: 0.5rem !important;
+    }
+    
+    .nav-link-enhanced {
+        flex-direction: column !important; /* Stack icono y texto */
+        padding: 8px !important;
+        font-size: 14px !important;
+        gap: 4px !important;
+    }
+    
+    .nav-link-enhanced span {
+        font-size: 11px !important;
+    }
+    
+    .nav-link-enhanced i {
+        font-size: 18px !important;
+    }
+    
+    /* Brand: mas pequeno */
+    .brand-icon-enhanced {
+        width: 45px !important;
+        height: 45px !important;
+    }
+    
+    .brand-logo-img {
+        width: 35px !important;
+        height: 35px !important;
+    }
+    
+    .brand-text-enhanced {
+        font-size: 1.1rem !important;
+    }
+    
+    /* Usuario: compacto */
+    .user-avatar-enhanced {
+        width: 45px !important;
+        height: 45px !important;
+    }
+    
+    .user-info-enhanced {
+        padding: 4px 12px 4px 4px !important;
+    }
+    
+    .user-name-enhanced,
+    .user-role-enhanced {
+        font-size: 12px !important;
+    }
+    
+    /* Botones flotantes: ajustar tamano y posicion */
+    .floating-audio-toggle-btn,
+    .floating-camera-settings-btn {
+        width: 50px !important;
+        height: 50px !important;
+        font-size: 20px !important;
+    }
+    
+    .floating-audio-toggle-btn {
+        bottom: 20px !important;
+        right: 20px !important;
+    }
+    
+    .floating-camera-settings-btn {
+        bottom: 20px !important;
+        left: 20px !important;
+    }
+    
+    /* Floating control buttons (genericos) */
+    .floating-control-btn {
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 18px !important;
+    }
+    
+    #audio-toggle-btn {
+        top: 70px !important; /* Era 80px */
+    }
+    
+    #camera-settings-btn {
+        top: 130px !important; /* Era 145px */
+    }
+    
+    /* Modales: ancho completo en mobile */
+    .analysis-modal-content {
+        width: 95% !important;
+        max-width: none !important;
+        margin: 10px !important;
+        padding: 15px !important;
+    }
+    
+    .modal-stream-wrapper {
+        min-height: 300px !important; /* Era 400px */
+    }
+    
+    /* Camera settings modal */
+    #cameraSettingsModal .modal-dialog {
+        margin: 0.5rem !important;
+        max-width: calc(100% - 1rem) !important;
+    }
+    
+    #cameraSettingsModal .modal-content {
+        border-radius: 12px !important;
+    }
+    
+    /* Exercise cards: stack vertical */
+    .exercise-card {
+        margin-bottom: 1rem !important;
+    }
+    
+    .exercise-nav-container {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+    }
+    
+    .nav-exercise-link {
+        min-width: 100% !important;
+        justify-content: center !important;
+    }
+    
+    /* Analysis panels: full width */
+    .analysis-panel {
+        padding: 1rem !important;
+    }
+    
+    .panel-header h3 {
+        font-size: 1.1rem !important;
+    }
+    
+    /* Metric cards: smaller */
+    .metric-card {
+        padding: 0.75rem !important;
+    }
+    
+    .metric-value {
+        font-size: 1.5rem !important;
+    }
+    
+    .metric-label {
+        font-size: 0.8rem !important;
+    }
+    
+    /* Scroll indicator: smaller */
+    .scroll-down-indicator {
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 1.2rem !important;
+        bottom: 20px !important;
+    }
+    
+    /* 🎥 CAMERA STREAM: Mobile Large - Para tablets y móviles grandes (480px-767px) */
+    .stream-container {
+        min-height: 300px !important; /* Era 400px inline - reducido para tablets */
+    }
+    
+    #romOverlay {
+        min-width: 150px !important; /* Era 200px - optimizado para tablets */
+        padding: 10px !important; /* Era 15px */
+        font-size: 11px !important;
+    }
+    
+    #romOverlay strong {
+        font-size: 12px !important;
+    }
+    
+    #romCurrentAngle,
+    #romMaxAngle {
+        font-size: 16px !important; /* Ángulos: legibles en tablets */
+    }
+}
+
+/* =============================================================================
+   MOBILE SMALL (320px - 479px)
+   ============================================================================= */
+
+@media (max-width: 479px) {
+    /* Navbar: ultra compacto */
+    .navbar-content-enhanced {
+        padding: 0.5rem !important;
+    }
+    
+    .navbar-menu-enhanced {
+        gap: 0.25rem !important;
+        margin-top: 0.25rem !important;
+    }
+    
+    .nav-link-enhanced {
+        padding: 6px !important;
+        font-size: 12px !important;
+    }
+    
+    .nav-link-enhanced span {
+        display: none !important; /* Ocultar texto, solo iconos */
+    }
+    
+    .nav-link-enhanced i {
+        font-size: 20px !important;
+    }
+    
+    /* Brand: minimo */
+    .brand-icon-enhanced {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    /* 🎥 CAMERA STREAM: Mobile Small - Critical para iPhone SE 375px */
+    .stream-container {
+        min-height: 250px !important; /* Era 400px inline - demasiado alto para móviles */
+    }
+    
+    #romOverlay {
+        min-width: 120px !important; /* Era 200px - ocupaba 53% del ancho en iPhone SE */
+        padding: 8px !important; /* Era 15px */
+        top: 5px !important; /* Más cerca del borde */
+        right: 5px !important;
+        font-size: 10px !important; /* Texto más pequeño pero legible */
+    }
+    
+    #romOverlay strong {
+        font-size: 11px !important;
+    }
+    
+    #romCurrentAngle,
+    #romMaxAngle {
+        font-size: 14px !important; /* Ángulos principales: legibles */
+    }
+    
+    #romStatusMessage {
+        font-size: 9px !important;
+    }
+    
+    .brand-logo-img {
+        width: 30px !important;
+        height: 30px !important;
+    }
+    
+    .brand-text-enhanced {
+        font-size: 1rem !important;
+    }
+    
+    /* Usuario: ocultar nombre/rol, solo avatar */
+    .user-avatar-enhanced {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    .user-name-enhanced,
+    .user-role-enhanced {
+        display: none !important;
+    }
+    
+    .user-info-enhanced {
+        padding: 4px !important;
+    }
+    
+    /* Botones flotantes: mas pequenos */
+    .floating-audio-toggle-btn,
+    .floating-camera-settings-btn {
+        width: 45px !important;
+        height: 45px !important;
+        font-size: 18px !important;
+        bottom: 15px !important;
+    }
+    
+    .floating-audio-toggle-btn {
+        right: 15px !important;
+    }
+    
+    .floating-camera-settings-btn {
+        left: 15px !important;
+    }
+    
+    /* Floating control buttons */
+    .floating-control-btn {
+        width: 44px !important; /* Minimo iOS touch target */
+        height: 44px !important;
+        font-size: 16px !important;
+        right: 15px !important;
+    }
+    
+    #audio-toggle-btn {
+        top: 65px !important;
+    }
+    
+    #camera-settings-btn {
+        top: 120px !important;
+    }
+    
+    /* Modales: fullscreen */
+    .analysis-modal-content {
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 10px !important;
+        border-radius: 0 !important;
+    }
+    
+    .analysis-close-btn {
+        top: 5px !important;
+        right: 5px !important;
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 18px !important;
+    }
+    
+    /* Camera settings modal: fullscreen */
+    #cameraSettingsModal .modal-dialog {
+        margin: 0 !important;
+        max-width: 100% !important;
+        height: 100% !important;
+    }
+    
+    #cameraSettingsModal .modal-content {
+        height: 100% !important;
+        border-radius: 0 !important;
+    }
+    
+    /* Exercise cards: mas pequenos */
+    .exercise-card {
+        padding: 0.75rem !important;
+    }
+    
+    .exercise-card h5 {
+        font-size: 1rem !important;
+    }
+    
+    .exercise-card p {
+        font-size: 0.75rem !important;
+    }
+    
+    /* Biomech icons: mas pequenos */
+    .biomech-icon-wrapper {
+        width: 50px !important;
+        height: 50px !important;
+    }
+    
+    .biomech-icon-wrapper i {
+        font-size: 20px !important;
+    }
+    
+    /* 🎥 CAMERA STREAM: Landscape - Critical para móviles en horizontal */
+    .stream-container {
+        min-height: 200px !important; /* Landscape: altura limitada, priorizar ancho */
+    }
+    
+    #romOverlay {
+        min-width: 120px !important;
+        padding: 6px !important; /* Padding mínimo en landscape */
+        font-size: 10px !important;
+        top: 5px !important;
+        right: 5px !important;
+    }
+    
+    #romOverlay strong {
+        font-size: 10px !important;
+    }
+    
+    #romCurrentAngle,
+    #romMaxAngle {
+        font-size: 14px !important;
+    }
+    
+    #romStatusMessage {
+        font-size: 8px !important;
+    }
+    
+    .rom-angle-display {
+        font-size: 1.5rem !important;
+    }
+}
+
+/* =============================================================================
+   LANDSCAPE MODE (Mobile horizontal)
+   ============================================================================= */
+
+@media (max-height: 500px) and (orientation: landscape) {
+    /* Navbar: compacto en landscape */
+    .navbar-content-enhanced {
+        padding: 0.25rem 1rem !important;
+    }
+    
+    .navbar-menu-enhanced {
+        margin-top: 0 !important;
+    }
+    
+    .nav-link-enhanced {
+        padding: 4px 8px !important;
+    }
+    
+    .nav-link-enhanced span {
+        display: none !important;
+    }
+    
+    /* Brand: mini */
+    .brand-icon-enhanced {
+        width: 35px !important;
+        height: 35px !important;
+    }
+    
+    .brand-logo-img {
+        width: 28px !important;
+        height: 28px !important;
+    }
+    
+    .brand-text-enhanced {
+        font-size: 0.9rem !important;
+    }
+    
+    /* Usuario: solo avatar */
+    .user-avatar-enhanced {
+        width: 35px !important;
+        height: 35px !important;
+    }
+    
+    .user-name-enhanced,
+    .user-role-enhanced {
+        display: none !important;
+    }
+    
+    /* Botones flotantes: mas discretos */
+    .floating-audio-toggle-btn,
+    .floating-camera-settings-btn {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 16px !important;
+        bottom: 10px !important;
+    }
+    
+    .floating-audio-toggle-btn {
+        right: 10px !important;
+    }
+    
+    .floating-camera-settings-btn {
+        left: 10px !important;
+    }
+    
+    /* Modales: aprovechar altura */
+    .analysis-modal-content {
+        max-height: 95vh !important;
+        overflow-y: auto !important;
+    }
+    
+    .modal-stream-wrapper {
+        min-height: 200px !important;
+    }
+}
+
+/* =============================================================================
+   TOUCH DEVICES (iOS/Android)
+   ============================================================================= */
+
+@media (hover: none) and (pointer: coarse) {
+    /* Aumentar areas de tap para touch */
+    .nav-link-enhanced,
+    .floating-audio-toggle-btn,
+    .floating-camera-settings-btn,
+    .floating-control-btn {
+        min-width: 44px !important; /* iOS minimum touch target */
+        min-height: 44px !important;
+    }
+    
+    /* Eliminar hover effects en touch */
+    .nav-link-enhanced:hover,
+    .floating-audio-toggle-btn:hover,
+    .floating-camera-settings-btn:hover {
+        transform: none !important;
+    }
+    
+    /* Active state mas visible en touch */
+    .nav-link-enhanced:active {
+        background: rgba(0, 212, 255, 0.15) !important;
+        transform: scale(0.95) !important;
+    }
+    
+    .floating-audio-toggle-btn:active,
+    .floating-camera-settings-btn:active {
+        transform: scale(0.9) !important;
+    }
+}
+
+/* =============================================================================
+   HIGH DPI (Retina displays)
+   ============================================================================= */
+
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    /* Mejorar crisp de imagenes en retina */
+    .brand-logo-img,
+    .user-avatar-enhanced img {
+        image-rendering: -webkit-optimize-contrast !important;
+        image-rendering: crisp-edges !important;
+    }
+    
+    /* Bordes mas finos en retina */
+    .biomech-glass,
+    .exercise-card,
+    .analysis-panel {
+        border-width: 0.5px !important;
+    }
+}
+
+/* =============================================================================
+   PRINT (Reportes/PDF)
+   ============================================================================= */
+
+@media print {
+    /* Ocultar elementos de navegacion al imprimir */
+    .navbar-content-enhanced,
+    .floating-audio-toggle-btn,
+    .floating-camera-settings-btn,
+    .floating-control-btn,
+    .scroll-down-indicator {
+        display: none !important;
+    }
+    
+    /* Maximizar contenido para impresion */
+    .analysis-panel,
+    .metric-card {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+    
+    /* Fondo blanco para impresion */
+    body {
+        background: white !important;
+    }
+    
+    /* Texto negro para impresion */
+    * {
+        color: black !important;
+    }
+}
+
+/* =============================================================================
+   ACCESSIBILITY (Motion reduction)
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    /* Desactivar animaciones para usuarios con sensibilidad */
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .scroll-down-indicator {
+        animation: none !important;
+    }
+    
+    .nav-link-enhanced.active::after {
+        animation: none !important;
+    }
+}
+
+/* =============================================================================
+   DARK MODE (Sistema operativo)
+   ============================================================================= */
+
+@media (prefers-color-scheme: dark) {
+    /* Ajustes adicionales para modo oscuro del sistema */
+    /* (BioTrack ya es dark por defecto, pero reforzamos) */
+    
+    .biomech-glass {
+        background: rgba(15, 23, 42, 0.75) !important;
+    }
+    
+    .analysis-panel {
+        background: rgba(15, 23, 42, 0.85) !important;
+    }
+}
+
+/* =============================================================================
+   MODAL DE GUÍA DE USO - Dashboard Quick Start Guide
+   ============================================================================= */
+
+/* Overlay fullscreen con backdrop blur */
+.guide-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    z-index: 10000; /* Por encima de navbar (9999) */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: guideOverlayFadeIn 0.3s ease;
+    overflow-y: auto;
+}
+
+@keyframes guideOverlayFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Modal centrado con diseño moderno */
+.guide-modal {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 212, 255, 0.2);
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: guideModalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+}
+
+@keyframes guideModalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Header del modal */
+.guide-header {
+    background: linear-gradient(90deg, rgba(0, 212, 255, 0.15) 0%, rgba(0, 149, 255, 0.15) 100%);
+    border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 20px 20px 0 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+}
+
+.guide-header h3 {
+    color: #00D4FF;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.guide-header h3 i {
+    font-size: 1.75rem;
+}
+
+.guide-header button {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.7);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.guide-header button:hover {
+    background: rgba(255, 59, 48, 0.15);
+    border-color: rgba(255, 59, 48, 0.5);
+    color: #ff3b30;
+    transform: rotate(90deg);
+}
+
+/* Contenido del modal */
+.guide-content {
+    padding: 2rem;
+}
+
+/* Steps individuales con iconos grandes */
+.guide-step {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 15px;
+    border: 1px solid rgba(0, 212, 255, 0.1);
+    transition: all 0.3s ease;
+    opacity: 0;
+    animation: guideStepFadeIn 0.5s ease forwards;
+}
+
+/* Staggered animation delays para cada step */
+.guide-step:nth-child(1) { animation-delay: 0.1s; }
+.guide-step:nth-child(2) { animation-delay: 0.2s; }
+.guide-step:nth-child(3) { animation-delay: 0.3s; }
+.guide-step:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes guideStepFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.guide-step:hover {
+    background: rgba(0, 212, 255, 0.05);
+    border-color: rgba(0, 212, 255, 0.3);
+    transform: translateX(5px);
+}
+
+/* Número del step - grande y destacado */
+.step-number {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #00D4FF 0%, #0095FF 100%);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0f172a;
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+}
+
+/* Ícono del step (alternativa al número) */
+.step-icon {
+    flex-shrink: 0;
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(0, 149, 255, 0.15) 100%);
+    border: 2px solid rgba(0, 212, 255, 0.3);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: #00D4FF;
+}
+
+.step-content h4 {
+    color: #ffffff;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+}
+
+.step-content p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.step-content ul {
+    margin: 0.75rem 0 0 0;
+    padding-left: 1.25rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.step-content ul li {
+    margin-bottom: 0.4rem;
+    line-height: 1.5;
+}
+
+/* Tip box destacado */
+.guide-tip {
+    background: linear-gradient(135deg, rgba(255, 204, 0, 0.1) 0%, rgba(255, 149, 0, 0.1) 100%);
+    border: 1px solid rgba(255, 204, 0, 0.3);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 1rem;
+    align-items: start;
+}
+
+.guide-tip-icon {
+    font-size: 1.75rem;
+    color: #FFCC00;
+    flex-shrink: 0;
+}
+
+.guide-tip-content h5 {
+    color: #FFCC00;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.4rem 0;
+}
+
+.guide-tip-content p {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* CTA button al final */
+.guide-cta {
+    text-align: center;
+    padding-top: 1rem;
+}
+
+.guide-cta button {
+    background: linear-gradient(135deg, #00D4FF 0%, #0095FF 100%);
+    border: none;
+    color: #0f172a;
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 1rem 2.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.guide-cta button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 212, 255, 0.5);
+}
+
+.guide-cta button:active {
+    transform: translateY(0);
+}
+
+/* Responsive Mobile */
+@media (max-width: 767px) {
+    .guide-overlay {
+        padding: 0;
+        align-items: flex-start;
+    }
+    
+    .guide-modal {
+        max-width: 100%;
+        min-height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+        border: none;
+    }
+    
+    .guide-header {
+        padding: 1.25rem 1.5rem;
+        border-radius: 0;
+    }
+    
+    .guide-header h3 {
+        font-size: 1.25rem;
+    }
+    
+    .guide-header h3 i {
+        font-size: 1.5rem;
+    }
+    
+    .guide-header button {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+    }
+    
+    .guide-content {
+        padding: 1.5rem 1rem;
+    }
+    
+    .guide-step {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .step-number {
+        width: 50px;
+        height: 50px;
+        font-size: 1.75rem;
+        align-self: flex-start;
+    }
+    
+    .step-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 2rem;
+        align-self: flex-start;
+    }
+    
+    .step-content h4 {
+        font-size: 1.1rem;
+    }
+    
+    .step-content p {
+        font-size: 0.95rem;
+    }
+    
+    .guide-tip {
+        flex-direction: column;
+        padding: 1rem;
+        gap: 0.75rem;
+    }
+    
+    .guide-tip-icon {
+        font-size: 1.5rem;
+    }
+    
+    .guide-tip-content h5 {
+        font-size: 0.95rem;
+    }
+    
+    .guide-tip-content p {
+        font-size: 0.9rem;
+    }
+    
+    .guide-cta button {
+        width: 100%;
+        font-size: 1rem;
+        padding: 0.9rem 1.5rem;
+    }
+}
+
+/* Tablet adjustments */
+@media (max-width: 991px) and (min-width: 768px) {
+    .guide-modal {
+        max-width: 90%;
+    }
+    
+    .guide-content {
+        padding: 1.75rem 1.5rem;
+    }
+}
+
+/* Prevent body scroll cuando modal abierto */
+body.guide-open {
+    overflow: hidden;
+}
+

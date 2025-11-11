@@ -1,0 +1,607 @@
+<!-- MODAL DE CONFIGURACION DE CAMARA -->
+<div id="cameraSettingsModal" class="camera-settings-modal">
+    <div class="camera-settings-content biomech-glass">
+        <!-- Header -->
+        <div class="settings-header">
+            <h3>
+                <i class="bi bi-gear-fill"></i>
+                Configuracion de Camara
+            </h3>
+            <button class="settings-close-btn" onclick="closeCameraSettings()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        
+        <!-- Configuracion Actual -->
+        <div class="current-config-banner">
+            <div class="config-label">Configuracion Actual:</div>
+            <div class="config-items">
+                <span class="config-item">
+                    <i class="bi bi-camera-video"></i>
+                    <strong id="currentCameraName">Automatico</strong>
+                </span>
+                <span class="config-item">
+                    <i class="bi bi-aspect-ratio"></i>
+                    <strong id="currentResolution">480p</strong>
+                </span>
+                <span class="config-item">
+                    <i class="bi bi-speedometer"></i>
+                    <strong id="currentFPS">3 fps</strong>
+                </span>
+                <span class="config-item">
+                    <i class="bi bi-badge-hd"></i>
+                    <strong id="currentQuality">60%</strong>
+                </span>
+            </div>
+        </div>
+        
+        <!-- Selector de Camara -->
+        <div class="settings-section">
+            <label class="settings-label">
+                <i class="bi bi-camera-video-fill"></i>
+                Camara a utilizar
+            </label>
+            <select id="cameraSelect" class="settings-select">
+                <option value="">Automatico (predeterminado)</option>
+            </select>
+            <small class="settings-hint">Selecciona una camara especifica o deja en automatico</small>
+        </div>
+        
+        <!-- Presets Rapidos -->
+        <div class="settings-section">
+            <label class="settings-label">
+                <i class="bi bi-speedometer2"></i>
+                Presets Rapidos
+            </label>
+            <div class="preset-buttons">
+                <button class="preset-btn" data-preset="slow">
+                    <i class="bi bi-wifi-off"></i>
+                    <span class="preset-name">Red Lenta</span>
+                    <small>360p, 1fps, 50%</small>
+                </button>
+                <button class="preset-btn preset-active" data-preset="standard">
+                    <i class="bi bi-wifi"></i>
+                    <span class="preset-name">Estandar</span>
+                    <small>480p, 25fps, 60% (ACTUAL)</small>
+                </button>
+                <button class="preset-btn" data-preset="high">
+                    <i class="bi bi-wifi-2"></i>
+                    <span class="preset-name">Alta Calidad</span>
+                    <small>720p, 30fps, 80%</small>
+                </button>
+                <button class="preset-btn" data-preset="custom">
+                    <i class="bi bi-sliders"></i>
+                    <span class="preset-name">Personalizado</span>
+                    <small>Ajustar manualmente</small>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Configuracion Personalizada -->
+        <div id="customSettings" class="settings-section" style="display: none;">
+            <!-- Resolucion -->
+            <div class="settings-control">
+                <label class="settings-label">
+                    <i class="bi bi-aspect-ratio"></i>
+                    Resolucion
+                </label>
+                <select id="resolutionSlider" class="settings-select">
+                    <option value="0">360p - Baja (480x360)</option>
+                    <option value="1" selected>480p - Estandar (640x480) [ACTUAL]</option>
+                    <option value="2">720p - Alta (1280x720)</option>
+                    <option value="3">1080p - Muy Alta (1920x1080)</option>
+                </select>
+                <div class="slider-value"><strong id="resolutionDisplay">480p</strong></div>
+                <small class="settings-hint">Mayor resolucion = mejor precision pero mas datos</small>
+            </div>
+            
+            <!-- FPS -->
+            <div class="settings-control">
+                <label class="settings-label">
+                    <i class="bi bi-speedometer"></i>
+                    Frames por Segundo (FPS)
+                </label>
+                <div class="slider-container">
+                    <input type="range" id="fpsSlider" min="0" max="8" step="1" value="7" class="settings-slider">
+                    <div class="slider-labels">
+                        <span>1</span>
+                        <span>2</span>
+                        <span>3</span>
+                        <span>5</span>
+                        <span>10</span>
+                        <span>15</span>
+                        <span>20</span>
+                        <span>25</span>
+                        <span>30</span>
+                    </div>
+                </div>
+                <div class="slider-value"><strong id="fpsDisplay">25</strong> fps</div>
+                <small class="settings-hint">Mas FPS = movimiento mas fluido pero mas datos</small>
+            </div>
+            
+            <!-- Calidad JPEG -->
+            <div class="settings-control">
+                <label class="settings-label">
+                    <i class="bi bi-badge-hd"></i>
+                    Calidad de Imagen (JPEG)
+                </label>
+                <div class="slider-container">
+                    <input type="range" id="qualitySlider" min="0" max="6" step="1" value="2" class="settings-slider">
+                    <div class="slider-labels">
+                        <span>40</span>
+                        <span>50</span>
+                        <span>60</span>
+                        <span>70</span>
+                        <span>80</span>
+                        <span>90</span>
+                        <span>100</span>
+                    </div>
+                </div>
+                <div class="slider-value"><strong id="qualityDisplay">60</strong>%</div>
+                <small class="settings-hint">Mayor calidad = mejor imagen pero mas datos</small>
+            </div>
+        </div>
+        
+        <!-- Indicador de Ancho de Banda -->
+        <div class="settings-section">
+            <label class="settings-label">
+                <i class="bi bi-activity"></i>
+                Ancho de Banda Estimado (TEORICO)
+            </label>
+            <div class="bandwidth-indicator">
+                <div class="bandwidth-bar">
+                    <div class="bandwidth-fill" id="bandwidthBar" data-level="medium"></div>
+                </div>
+                <div class="bandwidth-info">
+                    <div class="bandwidth-value">
+                        <strong id="bandwidthValue">1.0</strong> Mbps
+                        <span class="bandwidth-label" id="bandwidthLabel">(Red media)</span>
+                    </div>
+                    <div class="bandwidth-details">
+                        <small>NOTA: Valor calculado teoricamente, no medicion real</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Warnings -->
+        <div id="settingsWarnings" class="settings-warnings" style="display: none;">
+            <!-- Se llenara dinamicamente -->
+        </div>
+        
+        <!-- Footer con Botones -->
+        <div class="settings-footer">
+            <button class="settings-btn settings-btn-secondary" onclick="resetToDefaults()">
+                <i class="bi bi-arrow-counterclockwise"></i>
+                Restablecer Defaults
+            </button>
+            <button class="settings-btn settings-btn-primary" onclick="applyCameraSettings()">
+                <i class="bi bi-check-circle"></i>
+                Aplicar y Cerrar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Estilos CSS del Modal -->
+<style>
+/* Modal Overlay */
+.camera-settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.camera-settings-modal.active {
+    display: flex;
+    opacity: 1;
+}
+
+/* Modal Content */
+.camera-settings-content {
+    width: 90%;
+    max-width: 700px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 2rem;
+    border-radius: 12px;
+    position: relative;
+}
+
+/* Header */
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(0, 255, 255, 0.2);
+}
+
+.settings-header h3 {
+    margin: 0;
+    color: var(--biomech-cyan);
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.settings-close-btn {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: transform 0.2s;
+}
+
+.settings-close-btn:hover {
+    transform: scale(1.2);
+    color: var(--biomech-cyan);
+}
+
+/* Current Config Banner */
+.current-config-banner {
+    background: rgba(0, 255, 255, 0.1);
+    border-left: 4px solid var(--biomech-cyan);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 4px;
+}
+
+.config-label {
+    color: var(--biomech-cyan);
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.config-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.config-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #fff;
+}
+
+.config-item i {
+    color: var(--biomech-cyan);
+}
+
+/* Settings Section */
+.settings-section {
+    margin-bottom: 1.5rem;
+}
+
+.settings-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #fff;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.settings-label i {
+    color: var(--biomech-cyan);
+}
+
+.settings-select {
+    width: 100%;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 4px;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.settings-select option {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 0.5rem;
+}
+
+.settings-select:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--biomech-cyan);
+}
+
+.settings-select:focus {
+    outline: none;
+    border-color: var(--biomech-cyan);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.settings-hint {
+    display: block;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+/* Preset Buttons */
+.preset-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.preset-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(0, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.preset-btn i {
+    font-size: 1.5rem;
+    color: var(--biomech-cyan);
+    margin-bottom: 0.25rem;
+}
+
+.preset-name {
+    color: #fff;
+    font-weight: bold;
+    display: block;
+}
+
+.preset-btn small {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.75rem;
+}
+
+.preset-btn:hover {
+    background: rgba(0, 255, 255, 0.1);
+    border-color: var(--biomech-cyan);
+    transform: translateY(-2px);
+}
+
+.preset-btn.preset-active {
+    background: rgba(0, 255, 255, 0.2);
+    border-color: var(--biomech-cyan);
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+/* Sliders */
+.settings-control {
+    margin-bottom: 1.25rem;
+}
+
+.slider-container {
+    position: relative;
+    padding: 1rem 0;
+}
+
+.settings-slider {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.settings-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--biomech-cyan);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.settings-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--biomech-cyan);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    border: none;
+}
+
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.75rem;
+}
+
+.slider-value {
+    text-align: center;
+    margin-top: 0.5rem;
+    color: var(--biomech-cyan);
+    font-size: 1.1rem;
+}
+
+/* Bandwidth Indicator */
+.bandwidth-indicator {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.bandwidth-bar {
+    height: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+}
+
+.bandwidth-fill {
+    height: 100%;
+    transition: width 0.3s, background 0.3s;
+    border-radius: 5px;
+}
+
+.bandwidth-fill[data-level="low"] {
+    background: linear-gradient(90deg, #00ff00, #00dd00);
+}
+
+.bandwidth-fill[data-level="medium"] {
+    background: linear-gradient(90deg, #ffaa00, #ff8800);
+}
+
+.bandwidth-fill[data-level="high"] {
+    background: linear-gradient(90deg, #ff6600, #ff4400);
+}
+
+.bandwidth-fill[data-level="extreme"] {
+    background: linear-gradient(90deg, #ff0000, #cc0000);
+}
+
+.bandwidth-info {
+    text-align: center;
+}
+
+.bandwidth-value {
+    color: #fff;
+    font-size: 1.2rem;
+    margin-bottom: 0.25rem;
+}
+
+.bandwidth-value strong {
+    color: var(--biomech-cyan);
+}
+
+.bandwidth-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+
+.bandwidth-details {
+    margin-top: 0.5rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Warnings */
+.settings-warnings {
+    background: rgba(255, 150, 0, 0.1);
+    border-left: 4px solid #ff9900;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+}
+
+.warning-item {
+    display: flex;
+    align-items: start;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: #fff;
+}
+
+.warning-item:last-child {
+    margin-bottom: 0;
+}
+
+.warning-item i {
+    color: #ff9900;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.warning-item.error i {
+    color: #ff0000;
+}
+
+.warning-item.info i {
+    color: #00aaff;
+}
+
+/* Footer */
+.settings-footer {
+    display: flex;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid rgba(0, 255, 255, 0.2);
+}
+
+.settings-btn {
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+}
+
+.settings-btn-primary {
+    background: linear-gradient(135deg, var(--biomech-cyan) 0%, #00aacc 100%);
+    color: #000;
+}
+
+.settings-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 255, 255, 0.4);
+}
+
+.settings-btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.settings-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .camera-settings-content {
+        width: 95%;
+        padding: 1.5rem;
+    }
+    
+    .preset-buttons {
+        grid-template-columns: 1fr;
+    }
+    
+    .settings-footer {
+        flex-direction: column;
+    }
+}
+</style>
+
+<!-- JavaScript del Modal -->
+<script>
+// ✅ TODAS las funciones están implementadas en analysis.html
+// Este script está vacío intencionalmente para evitar sobrescribir las funciones reales
+console.log('📦 Camera Settings Modal cargado - funciones en analysis.html');
+</script>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- Húmero (brazo superior) -->
+  <line x1="35" y1="20" x2="45" y2="45" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Articulación del codo (bisagra) -->
+  <circle cx="47" cy="50" r="8" stroke="currentColor" stroke-width="2.5" fill="rgba(0, 212, 255, 0.15)"/>
+  
+  <!-- Radio y Cúbito (antebrazo) -->
+  <line x1="50" y1="55" x2="60" y2="80" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <line x1="47" y1="55" x2="55" y2="80" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+  
+  <!-- Eje de rotación -->
+  <line x1="40" y1="50" x2="54" y2="50" stroke="#00D4FF" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+  
+  <!-- Punto articular central -->
+  <circle cx="47" cy="50" r="3.5" fill="#00D4FF"/>
+  
+  <!-- Indicador de flexión -->
+  <path d="M 52 48 Q 58 50 52 52" stroke="#6B46C1" stroke-width="1.5" fill="none" opacity="0.6"/>
+</svg>

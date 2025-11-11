@@ -1,0 +1,1002 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Ejercicios de {{ joint_config.name }} - BioTrack
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header del Segmento -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="biomech-glass p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="exercise-icon-large me-3">
+                        <i class="bi bi-{{ joint_config.icon }}"></i>
+                    </div>
+                    <div>
+                        <h1 class="mb-2">{{ joint_config.name }}</h1>
+                        <p class="text-light mb-0">{{ joint_config.description }}</p>
+                    </div>
+                </div>
+                
+                <!-- Progreso del Usuario -->
+                <div class="progress-section">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-light">Progreso de ejercicios:</span>
+                        <span class="badge bg-primary">{{ completed_count }}/{{ total_exercises }} completados</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-gradient-primary" role="progressbar" style="width: {{ completion_percentage }}%"></div>
+                    </div>
+                </div>
+
+                <!-- 📏 Información de Altura de Cámara (Drillis & Contini) -->
+                <div class="camera-setup-section mt-4">
+                    <div class="row g-3">
+                        <div class="col-lg-8">
+                            <div class="camera-height-card">
+                                <div class="d-flex align-items-center">
+                                    <div class="camera-icon-wrapper me-3">
+                                        <i class="bi bi-camera-video-fill"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1 text-white">Altura de Cámara</h6>
+                                        <p class="camera-height-value mb-1">
+                                            <i class="bi bi-rulers"></i>
+                                            <strong>{{ camera_height_info.altura_calculada_cm }} cm</strong>
+                                            <span class="camera-height-detail">(perpendicular al {{ joint_config.name.lower() }})</span>
+                                        </p>
+                                        <small class="text-light">
+                                            <i class="bi bi-calculator"></i>
+                                            Cálculo: {{ camera_height_info.formula }}
+                                            <span class="badge badge-sm bg-info ms-2">Drillis & Contini</span>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="bluetooth-control-card">
+                                <button onclick="openControlModal()" 
+                                   class="btn-bluetooth-control">
+                                    <i class="bi bi-bluetooth"></i>
+                                    <span>Control ESP32</span>
+                                    <small>Ajustar altura cámara</small>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🎛️ MODAL: Selector de modo de control ESP32 -->
+    <div id="controlModal" class="control-modal" onclick="closeModalOnOutside(event)">
+        <div class="control-modal-content">
+            <div class="control-modal-header">
+                <h3>🎛️ ¿Desde dónde controlar el ESP32?</h3>
+                <button class="control-modal-close" onclick="closeControlModal()">&times;</button>
+            </div>
+            <div class="control-modal-body">
+                <div class="control-option">
+                    <div class="control-option-icon">💻</div>
+                    <div class="control-option-content">
+                        <h4>Desde esta PC</h4>
+                        <p>Conecta el ESP32 directamente a este computador usando cable USB o Bluetooth. Requiere permisos Web Serial API.</p>
+                        <a href="{{ url_for('bluetooth_control') }}" 
+                           target="_blank" 
+                           class="control-option-btn control-option-btn-primary">
+                            Abrir Control PC
+                        </a>
+                    </div>
+                </div>
+                <div class="control-option-divider"></div>
+                <div class="control-option">
+                    <div class="control-option-icon">📱</div>
+                    <div class="control-option-content">
+                        <h4>Control Remoto</h4>
+                        <p>Controla desde cualquier celular/tablet/PC en la red.</p>
+                        <div class="control-option-warning">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <strong>Requisito:</strong> El "Control PC" DEBE estar abierto y conectado al ESP32 para que el control remoto funcione.
+                        </div>
+                        <a href="{{ url_for('bluetooth_public') }}" 
+                           target="_blank" 
+                           class="control-option-btn control-option-btn-secondary">
+                            Abrir Control Remoto
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Selector de Ejercicios -->
+    <div class="row">
+        <div class="col-12">
+            <h2 class="text-white mb-4">
+                <i class="bi bi-list-check"></i>
+                Selecciona un ejercicio para análisis
+            </h2>
+        </div>
+    </div>
+
+    <!-- Grid de Ejercicios -->
+    <div class="row">
+        {% for exercise_config in exercises %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="exercise-selection-card">
+                <!-- Header del Ejercicio -->
+                <div class="exercise-card-header">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4 class="exercise-title">{{ exercise_config.exercise_name }}</h4>
+                            <p class="exercise-subtitle">{{ exercise_config.description }}</p>
+                        </div>
+                        <span class="difficulty-badge difficulty-{{ exercise_config.difficulty }}">
+                            {% if exercise_config.difficulty == 'easy' %}
+                                Fácil
+                            {% elif exercise_config.difficulty == 'medium' %}
+                                Medio
+                            {% elif exercise_config.difficulty == 'hard' %}
+                                Difícil
+                            {% else %}
+                                {{ exercise_config.difficulty.title() }}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Información del Ejercicio -->
+                <div class="exercise-card-body">
+                    <!-- Detalles Técnicos -->
+                    <div class="exercise-details mb-3">
+                        <div class="detail-item">
+                            <i class="bi bi-arrows-move"></i>
+                            <span>Plano: {{ exercise_config.plane.title() }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="bi bi-clock"></i>
+                            <span>Duración: {{ exercise_config.duration_seconds }}s</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="bi bi-bullseye"></i>
+                            <span>Rango: {{ exercise_config.normal_range.min }}° - {{ exercise_config.normal_range.max }}°</span>
+                        </div>
+                    </div>
+
+                    <!-- Instrucciones -->
+                    <div class="exercise-instructions mb-3">
+                        <h6><i class="bi bi-info-circle"></i> Instrucciones:</h6>
+                        <p class="instruction-text">{{ exercise_config.instructions.position }}</p>
+                        <p class="instruction-text">{{ exercise_config.instructions.movement }}</p>
+                    </div>
+
+                    <!-- Video Demo Thumbnail (clickeable) -->
+                    <div class="demo-video-thumbnail mb-3" 
+                         onclick="openVideoModal('{{ joint_type }}', '{{ exercise_config.exercise }}')">
+                        <div class="thumbnail-overlay">
+                            <i class="bi bi-play-circle-fill"></i>
+                            <span>Ver demostración</span>
+                        </div>
+                        <video class="thumbnail-preview" 
+                               data-exercise-id="{{ joint_type }}_{{ exercise_config.exercise }}"
+                               src="{{ url_for('static', filename='videos/exercises/' + joint_type + '_' + exercise_config.exercise + '.mp4') }}"
+                               preload="metadata"
+                               muted
+                               onloadedmetadata="updateVideoDuration(this)"
+                               onerror="this.style.display='none'; this.parentElement.querySelector('.thumbnail-overlay').innerHTML='<i class=\'bi bi-film\'></i><span>Video no disponible</span>'; this.parentElement.querySelector('.video-duration-badge').style.display='none';">
+                        </video>
+                        <div class="video-duration-badge" data-badge-for="{{ joint_type }}_{{ exercise_config.exercise }}">
+                            <i class="bi bi-clock"></i> <span class="duration-text">{{ exercise_config.duration_seconds }}s</span>
+                        </div>
+                    </div>
+
+                    <!-- Advertencias -->
+                    {% if exercise_config.instructions.warning %}
+                    <div class="exercise-warning mb-3">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <small>{{ exercise_config.instructions.warning }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Botón de Acción -->
+                <div class="exercise-card-footer">
+                    <a href="{{ url_for('analysis_with_exercise', joint_type=joint_type, exercise=exercise_config.exercise) }}" 
+                       class="btn btn-primary btn-lg w-100 start-exercise-btn">
+                        <i class="bi bi-play-fill"></i>
+                        Ir a Análisis
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Botón de Retorno -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a href="{{ url_for('exercises') }}" class="btn btn-outline-light">
+                <i class="bi bi-arrow-left"></i>
+                Volver a Segmentos
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- 🎬 MODAL DE VIDEO (Overlay fullscreen) -->
+<div id="videoModal" class="video-modal" onclick="closeVideoModal(event)">
+    <div class="video-modal-content">
+        <button class="video-close-btn" onclick="closeVideoModal(event)">
+            <i class="bi bi-x-circle-fill"></i>
+        </button>
+        <div class="video-wrapper">
+            <video id="modalVideo" controls autoplay>
+                <source id="modalVideoSource" src="" type="video/mp4">
+                Tu navegador no soporta videos HTML5.
+            </video>
+        </div>
+        <div class="video-info">
+            <h3 id="videoTitle">Demostración del Ejercicio</h3>
+            <p id="videoDescription">Observa la técnica correcta para realizar este movimiento</p>
+        </div>
+    </div>
+</div>
+
+<style>
+/* 🎨 Estilos para el Selector de Ejercicios */
+
+/* 📏 ESTILOS PARA ALTURA DE CÁMARA Y BLUETOOTH */
+.camera-setup-section {
+    padding: 1.25rem 0 0;
+    border-top: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.camera-height-card {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(107, 70, 193, 0.1));
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-radius: 12px;
+    padding: 1.25rem;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.camera-height-card:hover {
+    border-color: rgba(0, 212, 255, 0.5);
+    box-shadow: 0 4px 20px rgba(0, 212, 255, 0.2);
+}
+
+.camera-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #00d4ff, #0099cc);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.camera-height-value {
+    font-size: 1.1rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.camera-height-value i {
+    color: #00d4ff;
+}
+
+.camera-height-value strong {
+    font-size: 1.4rem;
+    color: #00d4ff;
+}
+
+.camera-height-detail {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: normal;
+}
+
+.badge-sm {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+}
+
+.bluetooth-control-card {
+    height: 100%;
+}
+
+.btn-bluetooth-control {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    background: linear-gradient(135deg, #6b46c1, #8b5cf6);
+    border: 1px solid rgba(139, 92, 246, 0.5);
+    border-radius: 12px;
+    padding: 1.25rem 1rem;
+    height: 100%;
+    min-height: 110px;
+    color: white;
+    transition: all 0.3s ease;
+    text-align: center;
+    cursor: pointer;
+    width: 100%;
+}
+
+.btn-bluetooth-control:hover {
+    background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+    border-color: rgba(139, 92, 246, 0.7);
+    color: white;
+}
+
+.btn-bluetooth-control i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.btn-bluetooth-control span {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.btn-bluetooth-control small {
+    font-size: 0.75rem;
+    opacity: 0.9;
+}
+
+/* 🎛️ MODAL DE SELECCIÓN DE CONTROL */
+.control-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease;
+}
+
+.control-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.control-modal-content {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 2px solid rgba(139, 92, 246, 0.3);
+    border-radius: 20px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s ease;
+}
+
+.control-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.control-modal-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 1.3rem;
+}
+
+.control-modal-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 2rem;
+    cursor: pointer;
+    transition: color 0.3s;
+    line-height: 1;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+}
+
+.control-modal-close:hover {
+    color: white;
+}
+
+.control-modal-body {
+    padding: 2rem;
+}
+
+.control-option {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 1.5rem;
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.control-option-icon {
+    font-size: 3rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.control-option-content {
+    flex: 1;
+}
+
+.control-option-content h4 {
+    color: white;
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+}
+
+.control-option-content p {
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.control-option-warning {
+    background: rgba(251, 191, 36, 0.15);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    color: #fbbf24;
+    font-size: 0.85rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+}
+
+.control-option-warning i {
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+.control-option-warning strong {
+    color: #fcd34d;
+}
+
+.control-option-btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.control-option-btn-primary {
+    background: linear-gradient(135deg, #6b46c1, #8b5cf6);
+    color: white;
+    border: 1px solid rgba(139, 92, 246, 0.5);
+}
+
+.control-option-btn-primary:hover {
+    background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+    color: white;
+}
+
+.control-option-btn-secondary {
+    background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+    color: white;
+    border: 1px solid rgba(6, 182, 212, 0.5);
+}
+
+.control-option-btn-secondary:hover {
+    background: linear-gradient(135deg, #06b6d4, #22d3ee);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(6, 182, 212, 0.4);
+    color: white;
+}
+
+.control-option-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.3), transparent);
+    margin: 1.5rem 0;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { 
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* END: ESTILOS ALTURA CÁMARA Y BLUETOOTH */
+
+.exercise-selection-card {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 0;
+    height: 100%;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.exercise-selection-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.exercise-card-header {
+    padding: 1.5rem 1.5rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.exercise-title {
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.exercise-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    margin-bottom: 0;
+}
+
+.difficulty-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.difficulty-easy { background: linear-gradient(45deg, #28a745, #20c997); }
+.difficulty-medium { background: linear-gradient(45deg, #ffc107, #fd7e14); }
+.difficulty-hard { background: linear-gradient(45deg, #dc3545, #e83e8c); }
+
+.exercise-card-body {
+    padding: 1rem 1.5rem;
+}
+
+.exercise-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+}
+
+.detail-item i {
+    margin-right: 0.5rem;
+    color: #00d4ff;
+    width: 16px;
+}
+
+.exercise-instructions h6 {
+    color: #00d4ff;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.instruction-text {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+    line-height: 1.4;
+}
+
+/* 🎬 Video Thumbnail (clickeable preview) */
+.demo-video-thumbnail {
+    position: relative;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    height: 180px;
+    transition: all 0.3s ease;
+}
+
+.demo-video-thumbnail:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
+}
+
+.thumbnail-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.demo-video-thumbnail:hover .thumbnail-preview {
+    opacity: 1;
+}
+
+.thumbnail-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+
+.demo-video-thumbnail:hover .thumbnail-overlay {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.thumbnail-overlay i {
+    font-size: 3rem;
+    color: #00d4ff;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.demo-video-thumbnail:hover .thumbnail-overlay i {
+    transform: scale(1.2);
+    color: #fff;
+}
+
+.thumbnail-overlay span {
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.video-duration-badge {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: white;
+    font-size: 0.75rem;
+    z-index: 2;
+}
+
+/* 🎬 Modal de Video (Overlay Fullscreen) */
+.video-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.video-modal.active {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.video-modal-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90vh;
+    animation: scaleIn 0.3s ease;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.video-close-btn {
+    position: absolute;
+    top: -50px;
+    right: 0;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10000;
+}
+
+.video-close-btn:hover {
+    color: #00d4ff;
+    transform: scale(1.1);
+}
+
+.video-wrapper {
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0, 212, 255, 0.3);
+}
+
+.video-wrapper video {
+    width: 100%;
+    max-height: 70vh;
+    display: block;
+}
+
+.video-info {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: white;
+}
+
+.video-info h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #00d4ff;
+}
+
+.video-info p {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.exercise-warning {
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 6px;
+    padding: 0.75rem;
+    color: #ffc107;
+}
+
+.exercise-warning i {
+    margin-right: 0.5rem;
+}
+
+.exercise-card-footer {
+    padding: 1rem 1.5rem 1.5rem;
+}
+
+.start-exercise-btn {
+    background: linear-gradient(45deg, #00d4ff, #0099cc);
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.start-exercise-btn:hover {
+    background: linear-gradient(45deg, #0099cc, #007acc);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 212, 255, 0.3);
+}
+
+.exercise-icon-large {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(45deg, #00d4ff, #0099cc);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.exercise-icon-large i {
+    font-size: 2rem;
+    color: white;
+}
+
+.progress-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(45deg, #00d4ff, #0099cc) !important;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// =============================================================================
+// 🎬 SISTEMA DE VIDEO MODAL
+// =============================================================================
+
+/**
+ * Actualiza la duración del video con el tiempo real del archivo
+ * @param {HTMLVideoElement} videoElement - Elemento de video que cargó los metadatos
+ */
+function updateVideoDuration(videoElement) {
+    const exerciseId = videoElement.getAttribute('data-exercise-id');
+    const badge = document.querySelector(`[data-badge-for="${exerciseId}"]`);
+    
+    if (badge && videoElement.duration && !isNaN(videoElement.duration)) {
+        const durationSeconds = Math.round(videoElement.duration);
+        const durationText = badge.querySelector('.duration-text');
+        if (durationText) {
+            durationText.textContent = `${durationSeconds}s`;
+        }
+        console.log(`⏱️ Duración actualizada para ${exerciseId}: ${durationSeconds}s`);
+    }
+}
+
+/**
+ * Abre el modal de video con el video correspondiente al ejercicio
+ * @param {string} jointType - Tipo de articulación (shoulder, elbow, etc.)
+ * @param {string} exercise - Nombre del ejercicio (flexion, extension, etc.)
+ */
+function openVideoModal(jointType, exercise) {
+    const modal = document.getElementById('videoModal');
+    const video = document.getElementById('modalVideo');
+    const videoSource = document.getElementById('modalVideoSource');
+    const videoTitle = document.getElementById('videoTitle');
+    const videoDescription = document.getElementById('videoDescription');
+    
+    // Construir ruta del video
+    const videoPath = `/static/videos/exercises/${jointType}_${exercise}.mp4`;
+    
+    // Actualizar información del video
+    const exerciseNames = {
+        'shoulder': 'Hombro',
+        'elbow': 'Codo',
+        'hip': 'Cadera',
+        'knee': 'Rodilla',
+        'ankle': 'Tobillo',
+        'neck': 'Cuello'
+    };
+    
+    const movementNames = {
+        'flexion': 'Flexión',
+        'extension': 'Extensión',
+        'abduction': 'Abducción',
+        'adduction': 'Aducción',
+        'internal_rotation': 'Rotación Interna',
+        'external_rotation': 'Rotación Externa',
+        'dorsiflexion': 'Dorsiflexión',
+        'plantarflexion': 'Plantiflexión'
+    };
+    
+    const jointName = exerciseNames[jointType] || jointType;
+    const movementName = movementNames[exercise] || exercise;
+    
+    videoTitle.textContent = `${jointName} - ${movementName}`;
+    videoDescription.textContent = 'Observa la técnica correcta y la postura para realizar este movimiento';
+    
+    // Cargar video
+    videoSource.src = videoPath;
+    video.load();
+    
+    // Mostrar modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden'; // Prevenir scroll del body
+    
+    console.log(`📹 Abriendo video: ${videoPath}`);
+}
+
+/**
+ * Cierra el modal de video
+ * @param {Event} event - Evento de click
+ */
+function closeVideoModal(event) {
+    // Solo cerrar si se hace click en el fondo oscuro o en el botón cerrar
+    if (event.target.id === 'videoModal' || event.target.closest('.video-close-btn')) {
+        const modal = document.getElementById('videoModal');
+        const video = document.getElementById('modalVideo');
+        
+        // Pausar video
+        video.pause();
+        video.currentTime = 0;
+        
+        // Ocultar modal
+        modal.classList.remove('active');
+        document.body.style.overflow = ''; // Restaurar scroll del body
+        
+        console.log('📹 Video cerrado');
+    }
+}
+
+// Cerrar modal con tecla ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('videoModal');
+        if (modal.classList.contains('active')) {
+            closeVideoModal({ target: modal });
+        }
+    }
+});
+
+// Prevenir que el click en el video cierre el modal
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('modalVideo');
+    if (video) {
+        video.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+    
+    console.log('✅ Sistema de video modal cargado');
+});
+
+// 🎛️ FUNCIONES PARA MODAL DE CONTROL ESP32
+function openControlModal() {
+    const modal = document.getElementById('controlModal');
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Prevenir scroll
+    }
+}
+
+function closeControlModal() {
+    const modal = document.getElementById('controlModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = ''; // Restaurar scroll
+    }
+}
+
+function closeModalOnOutside(event) {
+    if (event.target.id === 'controlModal') {
+        closeControlModal();
+    }
+}
+
+// Cerrar modal con tecla ESC
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeControlModal();
+    }
+});
+</script>
+{% endblock %}

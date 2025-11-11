@@ -1,0 +1,290 @@
+<!-- 
+=============================================================================
+📹 PANEL DE CONTROL DE SERVOS ESP32 (BLUETOOTH)
+=============================================================================
+Componente reutilizable para control de cámara en ejercicios
+Incluye: Popup altura Drillis-Contini, conexión Bluetooth, control Pan
+Uso: Define variable 'segmento' antes del include en analysis.html
+=============================================================================
+-->
+
+<!-- Botón flotante para abrir control -->
+<button id="btn-camera-control" class="btn btn-primary position-fixed" 
+        style="bottom: 80px; right: 20px; z-index: 1040; border-radius: 50%; width: 60px; height: 60px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);"
+        data-bs-toggle="modal" data-bs-target="#servo-control-modal"
+        title="Control de Cámara">
+    <i class="bi bi-camera-video" style="font-size: 24px;"></i>
+</button>
+
+<!-- Modal de Control de Servos -->
+<div class="modal fade" id="servo-control-modal" tabindex="-1" aria-labelledby="servoControlLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px);">
+            
+            <!-- Header -->
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="servoControlLabel">
+                    <i class="bi bi-camera-video me-2"></i>
+                    Control de Cámara ESP32
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <!-- Body -->
+            <div class="modal-body">
+                
+                <!-- Estado de Conexión -->
+                <div class="alert alert-info d-flex align-items-center" id="servo-status-alert" role="alert">
+                    <i class="bi bi-bluetooth me-2" style="font-size: 24px;"></i>
+                    <div>
+                        <strong id="servo-status-title">Bluetooth desconectado</strong>
+                        <p class="mb-0 small" id="servo-status-message">Haz clic en "Conectar" para iniciar</p>
+                    </div>
+                </div>
+                
+                <!-- Control de Conexión Bluetooth -->
+                <div class="card mb-3">
+                    <div class="card-header bg-light">
+                        <strong><i class="bi bi-bluetooth me-2"></i>Conexión Bluetooth</strong>
+                    </div>
+                    <div class="card-body text-center">
+                        <button id="btn-connect-bt" class="btn btn-success btn-lg" onclick="connectBluetooth()">
+                            <i class="bi bi-bluetooth"></i> Conectar ESP32
+                        </button>
+                        <button id="btn-disconnect-bt" class="btn btn-danger btn-lg d-none" onclick="disconnectBluetooth()">
+                            <i class="bi bi-x-circle"></i> Desconectar
+                        </button>
+                        <p class="mt-2 mb-0 small text-muted">
+                            <i class="bi bi-info-circle"></i> Requiere Chrome/Edge y puerto COM Bluetooth
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Control de Servo Pan (solo cuando está conectado) -->
+                <div class="card mb-3 d-none" id="pan-control-card">
+                    <div class="card-header bg-light">
+                        <strong><i class="bi bi-arrow-left-right me-2"></i>Control de Paneo (Pan)</strong>
+                    </div>
+                    <div class="card-body">
+                        
+                        <!-- Botones de control Pan -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <button class="btn btn-outline-primary w-100 py-3" onclick="panLeft()">
+                                    <i class="bi bi-arrow-left" style="font-size: 24px;"></i><br>
+                                    <strong>Izquierda</strong>
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn btn-outline-primary w-100 py-3" onclick="panRight()">
+                                    <i class="bi bi-arrow-right" style="font-size: 24px;"></i><br>
+                                    <strong>Derecha</strong>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Indicador visual de posición -->
+                        <div class="position-relative" style="height: 50px; background: linear-gradient(to right, #00D4FF, #6B46C1); border-radius: 25px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);">
+                            <div id="pan-indicator" class="position-absolute" 
+                                 style="top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                                        width: 35px; height: 35px; background: white; 
+                                        border-radius: 50%; border: 3px solid #1E293B; 
+                                        box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+                                        transition: left 0.3s ease;">
+                            </div>
+                            <!-- Marcadores L y R -->
+                            <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: white; font-weight: bold;">⬅</span>
+                            <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: white; font-weight: bold;">➡</span>
+                        </div>
+                        <p class="text-center mt-2 mb-0">
+                            <strong>Posición:</strong> 
+                            <span id="pan-position-text" class="badge" style="background: #6B46C1;">Centro</span>
+                        </p>
+                        
+                    </div>
+                </div>
+                
+                <!-- Info de Auto-nivelación -->
+                <div class="card border-success">
+                    <div class="card-body bg-success bg-opacity-10">
+                        <h6 class="card-title text-success">
+                            <i class="bi bi-shield-check me-2"></i>
+                            Auto-nivelación Activa
+                        </h6>
+                        <p class="mb-0 small">
+                            El servo de nivel se ajusta automáticamente usando el MPU6050 
+                            para mantener la cámara siempre paralela al piso.
+                        </p>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i> Cerrar
+                </button>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<!-- Script de control (inline para simplicidad) -->
+<script src="{{ url_for('static', filename='js/esp32_bluetooth_controller.js') }}"></script>
+<script>
+// ============================================================================
+// 📹 LÓGICA DE CONTROL DE SERVOS
+// ============================================================================
+
+let esp32Controller = null;
+const currentSegment = '{{ segmento }}'; // Variable pasada desde Jinja2
+
+// Inicializar al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar compatibilidad
+    if (!ESP32BluetoothController.isSupported()) {
+        showError('Tu navegador no soporta Web Serial API. Usa Chrome o Edge.');
+        document.getElementById('btn-connect-bt').disabled = true;
+        return;
+    }
+    
+    // Crear instancia del controlador
+    esp32Controller = new ESP32BluetoothController();
+    
+    // Registrar callbacks
+    esp32Controller.onStatusChange((connected, message) => {
+        updateConnectionStatus(connected, message);
+    });
+    
+    esp32Controller.onMessage((data) => {
+        handleESP32Message(data);
+    });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// Conexión Bluetooth
+// ────────────────────────────────────────────────────────────────────────────
+async function connectBluetooth() {
+    try {
+        const success = await esp32Controller.connect();
+        if (success) {
+            console.log('[BT] ✓ Conectado correctamente');
+        }
+    } catch (error) {
+        showError('Error al conectar: ' + error.message);
+    }
+}
+
+async function disconnectBluetooth() {
+    await esp32Controller.disconnect();
+}
+
+function updateConnectionStatus(connected, message) {
+    const statusAlert = document.getElementById('servo-status-alert');
+    const statusTitle = document.getElementById('servo-status-title');
+    const statusMessage = document.getElementById('servo-status-message');
+    const btnConnect = document.getElementById('btn-connect-bt');
+    const btnDisconnect = document.getElementById('btn-disconnect-bt');
+    const panCard = document.getElementById('pan-control-card');
+    
+    if (connected) {
+        statusAlert.className = 'alert alert-success d-flex align-items-center';
+        statusTitle.textContent = 'Bluetooth conectado';
+        statusMessage.textContent = message || 'ESP32 listo para recibir comandos';
+        btnConnect.classList.add('d-none');
+        btnDisconnect.classList.remove('d-none');
+        panCard.classList.remove('d-none');
+    } else {
+        statusAlert.className = 'alert alert-info d-flex align-items-center';
+        statusTitle.textContent = 'Bluetooth desconectado';
+        statusMessage.textContent = message || 'Haz clic en "Conectar" para iniciar';
+        btnConnect.classList.remove('d-none');
+        btnDisconnect.classList.add('d-none');
+        panCard.classList.add('d-none');
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Control de Servo Pan
+// ────────────────────────────────────────────────────────────────────────────
+async function panLeft() {
+    await esp32Controller.panLeft();
+    updatePanIndicator(45);
+}
+
+async function panRight() {
+    await esp32Controller.panRight();
+    updatePanIndicator(135);
+}
+
+function updatePanIndicator(angle) {
+    const indicator = document.getElementById('pan-indicator');
+    const text = document.getElementById('pan-position-text');
+    
+    // Calcular posición (45° = 0%, 135° = 100%)
+    const percentage = ((angle - 45) / 90) * 100;
+    indicator.style.left = `${percentage}%`;
+    
+    // Mostrar texto descriptivo
+    if (angle === 45) {
+        text.textContent = '⬅ Izquierda';
+        text.style.background = '#00D4FF';
+    } else if (angle === 135) {
+        text.textContent = '➡ Derecha';
+        text.style.background = '#00D4FF';
+    } else {
+        text.textContent = 'Centro';
+        text.style.background = '#6B46C1';
+    }
+}
+
+function handleESP32Message(data) {
+    console.log('[ESP32] Mensaje recibido:', data);
+    
+    if (data.type === 'success') {
+        // Actualizar indicador visual si viene ángulo
+        if (data.value) {
+            updatePanIndicator(parseInt(data.value));
+        }
+    } else if (data.type === 'status') {
+        // Actualizar con status completo
+        updatePanIndicator(data.pan);
+    } else if (data.type === 'error') {
+        showError(data.message);
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Utilidades
+// ────────────────────────────────────────────────────────────────────────────
+function showError(message) {
+    const statusAlert = document.getElementById('servo-status-alert');
+    statusAlert.className = 'alert alert-danger d-flex align-items-center';
+    document.getElementById('servo-status-title').textContent = 'Error';
+    document.getElementById('servo-status-message').textContent = message;
+}
+</script>
+
+<style>
+/* Animaciones suaves */
+#btn-camera-control {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#btn-camera-control:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.4) !important;
+}
+
+/* Botones de pan con hover effects */
+#pan-control-card .btn {
+    transition: all 0.2s ease;
+}
+
+#pan-control-card .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+</style>

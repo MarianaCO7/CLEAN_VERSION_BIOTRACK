@@ -1,0 +1,1937 @@
+{
+  "segments": {
+    "shoulder": {
+      "name": "Hombro",
+      "description": "Articulación glenohumeral",
+      "icon": "shoulder_1.png",
+      "anatomical_info": {
+        "medical_name": "Articulación glenohumeral",
+        "joint_type": "Enartrosis (esférica)",
+        "mobility": "Triaxial - Mayor movilidad del cuerpo"
+      },
+      "exercises": {
+        "flexion": {
+          "name": "Flexión de Hombro",
+          "description": "Elevación del brazo hacia adelante en el plano sagital",
+          "plane": "sagital",
+          "movement_type": "flexion_extension",
+          "difficulty": "easy",
+          "duration_seconds": 14,
+          "normal_range": {"min": 0, "max": 180},
+          "optimal_range": {"min": 30, "max": 150},
+          "calculation_method": "flexion_sagital",
+          "required_landmarks": [11, 12, 13, 14, 23, 24],
+          "primary_side": "bilateral",
+          "reference_points": {
+            "calculation": "elbow_shoulder_hip_angle",
+            "description": "Ángulo formado entre codo-hombro-cadera"
+          },
+          "instructions": {
+            "position": "De pie, brazo extendido hacia abajo a lo largo del cuerpo",
+            "movement": "Eleva el brazo lentamente hacia adelante hasta donde puedas cómodamente",
+            "warning": "No fuerces el movimiento. Mantén el brazo extendido durante todo el ejercicio.",
+            "tips": "Asegúrate de que la cadera sea visible en cámara para un análisis preciso"
+          },
+          "camera_orientation": "sagital",
+          "rom_capture_config": {
+            "active_capture_duration": 14,
+            "rom_window_seconds": 2,
+            "visual_countdown_duration": 15,
+            "relaxation_buffer": 1
+          },
+          "tts_phases": {
+            "welcome": {
+              "text": "Bienvenido al análisis de Flexión de Hombro",
+              "duration": 3,
+              "priority": "high"
+            },
+            "positioning": {
+              "text": "Ponte de perfil con el brazo relajado a lo largo del cuerpo",
+              "duration": 5,
+              "priority": "critical",
+              "required_orientation": "sagital",
+              "validation_timeout": 30,
+              "retry_message": "Aún no estás de perfil. Por favor, gira tu cuerpo hacia un lado"
+            },
+            "preparation": [
+              {
+                "text": "Muy bien. Comenzamos en 3",
+                "duration": 2,
+                "condition": "orientation_validated"
+              },
+              {
+                "text": "2",
+                "duration": 1
+              },
+              {
+                "text": "1",
+                "duration": 1
+              }
+            ],
+            "exercise": [
+              {
+                "text": "Levanta el brazo hacia adelante y arriba",
+                "duration": 4,
+                "timing": "start"
+              },
+              {
+                "text": "Sigue subiendo sin dolor",
+                "duration": 2,
+                "timing": 7
+              },
+              {
+                "text": "Mantén arriba",
+                "duration": 2,
+                "timing": 10
+              }
+            ],
+            "countdown": [
+              {
+                "beep": true,
+                "text": "3",
+                "duration": 1,
+                "timing": 11
+              },
+              {
+                "beep": true,
+                "text": "2",
+                "duration": 1,
+                "timing": 12
+              },
+              {
+                "beep": true,
+                "text": "1",
+                "duration": 1,
+                "timing": 13
+              },
+              {
+                "text": "Relájate y baja el brazo",
+                "duration": 2,
+                "timing": 14
+              }
+            ]
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Deltoides anterior", "Coracobraquial", "Pectoral mayor"],
+            "compensations": "Evitar extensión de columna o elevación de hombro",
+            "clinical_relevance": "Evaluación de movilidad anterior del hombro"
+          }
+        },
+        "extension": {
+          "name": "Extensión de Hombro",
+          "description": "Movimiento del brazo hacia atrás en el plano sagital",
+          "plane": "sagital",
+          "movement_type": "flexion_extension",
+          "difficulty": "easy",
+          "duration_seconds": 14,
+          "rom_capture_config": {
+            "active_capture_duration": 14,
+            "rom_window_seconds": 2,
+            "visual_countdown_duration": 15,
+            "relaxation_buffer": 1
+          },
+          "normal_range": {"min": 0, "max": 50},
+          "optimal_range": {"min": 10, "max": 40},
+          "calculation_method": "extension_sagital",
+          "required_landmarks": [11, 12, 13, 14, 23, 24],
+          "primary_side": "bilateral",
+          "reference_points": {
+            "calculation": "elbow_shoulder_hip_angle",
+            "description": "Ángulo formado entre codo-hombro-cadera (retorno de flexión)"
+          },
+          "instructions": {
+            "position": "De pie, brazo extendido hacia abajo a lo largo del cuerpo",
+            "movement": "Mueve el brazo hacia atrás lo más que puedas cómodamente",
+            "warning": "No fuerces el movimiento. Mantén el brazo extendido durante todo el ejercicio.",
+            "tips": "Mantén el brazo extendido y la espalda recta"
+          },
+          "camera_orientation": "sagital",
+          "tts_phases": {
+            "welcome": {
+              "text": "Bienvenido al análisis de Extensión de Hombro",
+              "duration": 3,
+              "timing": "immediate"
+            },
+            "positioning": {
+              "text": "Ponte de perfil con el brazo a lo largo del cuerpo",
+              "duration": 5,
+              "priority": "critical",
+              "validation": {
+                "required_orientation": "sagital",
+                "timeout": 5
+              }
+            },
+            "preparation": [
+              {
+                "text": "3",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "2",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "1",
+                "duration": 1,
+                "timing": "pre_calibration"
+              }
+            ],
+            "exercise": [
+              {
+                "text": "Lleva el brazo hacia atrás sin mover el tronco",
+                "duration": 4,
+                "timing": "start"
+              },
+              {
+                "text": "Mantén la espalda recta",
+                "duration": 3,
+                "timing": 7
+              },
+              {
+                "text": "Muy bien, posición máxima",
+                "duration": 2,
+                "timing": 10
+              }
+            ],
+            "countdown": [
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 11
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 12
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 13
+              },
+              {
+                "text": "Relájate y vuelve a la posición inicial",
+                "duration": 2,
+                "timing": 14
+              }
+            ]
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Deltoides posterior", "Redondo mayor", "Dorsal ancho"],
+            "compensations": "Evitar flexión de tronco o rotación",
+            "clinical_relevance": "Evaluación de movilidad posterior del hombro"
+          }
+        },
+        "abduction": {
+          "name": "Abducción de Hombro",
+          "description": "Elevación del brazo hacia el lado en el plano frontal",
+          "plane": "frontal",
+          "movement_type": "abduction_adduction",
+          "difficulty": "medium",
+          "duration_seconds": 14,
+          "rom_capture_config": {
+            "active_capture_duration": 14,
+            "rom_window_seconds": 2,
+            "visual_countdown_duration": 15,
+            "relaxation_buffer": 1
+          },
+          "normal_range": {"min": 0, "max": 180},
+          "optimal_range": {"min": 30, "max": 150},
+          "calculation_method": "abduction_frontal",
+          "required_landmarks": [11, 12, 13, 14, 15, 16, 23, 24],
+          "primary_side": "bilateral",
+          "reference_points": {
+            "calculation": "shoulder_wrist_vertical_angle",
+            "description": "Ángulo entre el brazo (hombro-muñeca) y la vertical"
+          },
+          "instructions": {
+            "position": "De pie, brazos a los costados del cuerpo",
+            "movement": "Eleva el brazo hacia el lado (lateral) hasta donde puedas",
+            "warning": "Mantén el torso erguido. No inclines el cuerpo hacia el lado contrario.",
+            "tips": "Colócate de frente a la cámara para mejor detección"
+          },
+          "camera_orientation": "frontal",
+          "tts_phases": {
+            "welcome": {
+              "text": "Bienvenido al análisis de Abducción de Hombro",
+              "duration": 3,
+              "timing": "immediate"
+            },
+            "positioning": {
+              "text": "Ponte de frente con los brazos a los costados",
+              "duration": 4,
+              "priority": "critical",
+              "validation": {
+                "required_orientation": "frontal",
+                "timeout": 5
+              }
+            },
+            "preparation": [
+              {
+                "text": "3",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "2",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "1",
+                "duration": 1,
+                "timing": "pre_calibration"
+              }
+            ],
+            "exercise": [
+              {
+                "text": "Levanta el brazo hacia el costado",
+                "duration": 3,
+                "timing": "start"
+              },
+              {
+                "text": "Sigue subiendo sin inclinar el cuerpo",
+                "duration": 3,
+                "timing": 7
+              },
+              {
+                "text": "Mantén arriba",
+                "duration": 2,
+                "timing": 10
+              }
+            ],
+            "countdown": [
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 11
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 12
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 13
+              },
+              {
+                "text": "Relájate y baja el brazo lentamente",
+                "duration": 1,
+                "timing": 14
+              }
+            ]
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Deltoides medio", "Supraespinoso", "Trapecio"],
+            "compensations": "Evitar inclinación lateral del tronco",
+            "clinical_relevance": "Evaluación del arco doloroso y movilidad lateral"
+          }
+        },
+        "external_rotation": {
+          "name": "Rotación Externa de Hombro",
+          "description": "Rotación del brazo hacia afuera con el codo pegado al costado",
+          "plane": "transversal",
+          "movement_type": "rotation",
+          "difficulty": "medium",
+          "duration_seconds": 14,
+          "rom_capture_config": {
+            "active_capture_duration": 14,
+            "rom_window_seconds": 2,
+            "visual_countdown_duration": 15,
+            "relaxation_buffer": 1
+          },
+          "normal_range": {"min": 0, "max": 90},
+          "optimal_range": {"min": 10, "max": 80},
+          "calculation_method": "shoulder_external_rotation",
+          "required_landmarks": [11,12,13,14,15,16],
+          "primary_side": "unilateral",
+          "instructions": {
+            "position": "Codo doblado a 90 grados y pegado al costado",
+            "movement": "Gira la mano hacia afuera manteniendo el codo estable",
+            "warning": "Evita elevar el hombro. Movimiento controlado.",
+            "tips": "Colócate de perfil para que se vea bien la rotación"
+          },
+          "camera_orientation": "sagital",
+          "tts_phases": {
+            "welcome": {
+              "text": "Bienvenido al análisis de Rotación Externa de Hombro",
+              "duration": 2,
+              "timing": "immediate"
+            },
+            "positioning": {
+              "text": "Ponte de perfil con el codo doblado al costado",
+              "duration": 4,
+              "priority": "critical",
+              "validation": {
+                "required_orientation": "sagital",
+                "timeout": 5
+              }
+            },
+            "preparation": [
+              {
+                "text": "3",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "2",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "1",
+                "duration": 1,
+                "timing": "pre_calibration"
+              }
+            ],
+            "exercise": [
+              {
+                "text": "Codo doblado y pegado al costado. Gira la mano hacia AFUERA",
+                "duration": 3,
+                "timing": "start"
+              },
+              {
+                "text": "Mantén el hombro quieto, solo gira el antebrazo",
+                "duration": 2,
+                "timing": 7
+              },
+              {
+                "text": "Muy bien, sigue hasta el máximo",
+                "duration": 2,
+                "timing": 10
+              }
+            ],
+            "countdown": [
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 11
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 12
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 13
+              },
+              {
+                "text": "Relájate y regresa al centro",
+                "duration": 1,
+                "timing": 14
+              }
+            ]
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Infraespinoso", "Redondo menor", "Deltoides posterior"],
+            "compensations": "Evitar elevación de hombro o rotación del tronco",
+            "clinical_relevance": "Evaluación de la rotación externa y estabilidad glenohumeral"
+          }
+        }
+      }
+    },
+    "elbow": {
+      "name": "Codo",
+      "description": "Articulación humero-cubital y radio-cubital",
+      "icon": "elbow_1.png",
+      "difficulty_level": "beginner",
+      "anatomical_region": "upper_extremity",
+      "exercises": {
+        "flexion": {
+          "name": "Flexión de Codo",
+          "description": "Flexión del antebrazo hacia el brazo",
+          "plane": "sagital",
+          "movement_type": "flexion_extension",
+          "difficulty": "easy",
+          "duration_seconds": 14,
+          "rom_capture_config": {
+            "active_capture_duration": 14,
+            "rom_window_seconds": 2,
+            "visual_countdown_duration": 15,
+            "relaxation_buffer": 1
+          },
+          "normal_range": {
+            "min": 0,
+            "max": 150,
+            "optimal_min": 30,
+            "optimal_max": 140,
+            "functional_min": 90,
+            "functional_max": 130,
+            "hypermobility_threshold": 155
+          },
+          "optimal_range": {"min": 30, "max": 140},
+          "calculation_method": "elbow_flexion_sagital",
+          "required_landmarks": [11, 12, 13, 14, 15, 16],
+          "primary_side": "unilateral",
+          "reference_points": {
+            "primary": ["shoulder", "elbow", "wrist"],
+            "calculation_type": "three_point_angle"
+          },
+          "instructions": {
+            "position": "De pie con el brazo relajado al lado del cuerpo",
+            "movement": "Dobla el codo llevando la mano hacia el hombro",
+            "warning": "Mantén el codo pegado al cuerpo durante todo el movimiento.",
+            "tips": "Realiza el movimiento de forma lenta y controlada"
+          },
+          "camera_orientation": "sagital",
+          "tts_phases": {
+            "welcome": {
+              "text": "Bienvenido al análisis de Flexión de Codo",
+              "duration": 2,
+              "timing": "immediate"
+            },
+            "positioning": {
+              "text": "Ponte de perfil, brazo relajado al costado",
+              "duration": 3,
+              "priority": "critical",
+              "validation": {
+                "required_orientation": "sagital",
+                "timeout": 5
+              }
+            },
+            "preparation": [
+              {
+                "text": "3",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "2",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "1",
+                "duration": 1,
+                "timing": "pre_calibration"
+              }
+            ],
+            "exercise": [
+              {
+                "text": "Dobla el codo, lleva la mano hacia tu hombro",
+                "duration": 3,
+                "timing": "start"
+              },
+              {
+                "text": "Sigue subiendo, codo pegado al cuerpo",
+                "duration": 2,
+                "timing": 6
+              },
+              {
+                "text": "Muy bien, mantén ahí arriba",
+                "duration": 2,
+                "timing": 9
+              }
+            ],
+            "countdown": [
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 11
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 12
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 13
+              },
+              {
+                "text": "Baja el brazo despacio",
+                "duration": 1,
+                "timing": 14
+              }
+            ]
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Bíceps braquial", "Braquial anterior", "Supinador largo"],
+            "compensations": "Evitar elevación del hombro o movimiento del tronco",
+            "clinical_relevance": "Evaluación de la función flexora del brazo"
+          }
+        },
+        "extension": {
+          "name": "Extensión de Codo",
+          "description": "Enderezamiento completo del brazo",
+          "plane": "sagital",
+          "movement_type": "flexion_extension",
+          "difficulty": "easy",
+          "duration_seconds": 14,
+          "rom_capture_config": {
+            "active_capture_duration": 14,
+            "rom_window_seconds": 2,
+            "visual_countdown_duration": 15,
+            "relaxation_buffer": 1
+          },
+          "normal_range": {
+            "min": 0,
+            "max": 10,
+            "optimal_min": 0,
+            "optimal_max": 5
+          },
+          "optimal_range": {"min": 0, "max": 5},
+          "calculation_method": "elbow_extension_sagital",
+          "required_landmarks": [11, 12, 13, 14, 15, 16],
+          "primary_side": "unilateral",
+          "reference_points": {
+            "primary": ["shoulder", "elbow", "wrist"],
+            "calculation_type": "three_point_angle"
+          },
+          "instructions": {
+            "position": "De pie con el brazo flexionado",
+            "movement": "Extiende completamente el brazo hacia abajo",
+            "warning": "No fuerces la extensión más allá del punto cómodo.",
+            "tips": "El movimiento debe ser suave y sin dolor"
+          },
+          "camera_orientation": "sagital",
+          "tts_phases": {
+            "welcome": {
+              "text": "Bienvenido al análisis de Extensión de Codo",
+              "duration": 2,
+              "timing": "immediate"
+            },
+            "positioning": {
+              "text": "Ponte de perfil, codo ligeramente doblado",
+              "duration": 3,
+              "priority": "critical",
+              "validation": {
+                "required_orientation": "sagital",
+                "timeout": 5
+              }
+            },
+            "preparation": [
+              {
+                "text": "3",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "2",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "1",
+                "duration": 1,
+                "timing": "pre_calibration"
+              }
+            ],
+            "exercise": [
+              {
+                "text": "Extiende el brazo hacia abajo, completamente",
+                "duration": 3,
+                "timing": "start"
+              },
+              {
+                "text": "Estíralo sin forzar, hasta donde puedas",
+                "duration": 2,
+                "timing": 6
+              },
+              {
+                "text": "Perfecto, mantén el brazo recto",
+                "duration": 2,
+                "timing": 9
+              }
+            ],
+            "countdown": [
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 11
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 12
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 13
+              },
+              {
+                "text": "Regresa a posición inicial",
+                "duration": 1,
+                "timing": 14
+              }
+            ]
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Tríceps braquial", "Ancóneo"],
+            "compensations": "Evitar compensación con movimiento del hombro",
+            "clinical_relevance": "Evaluación del rango de extensión completa del codo"
+          }
+        },
+        "overhead_extension": {
+          "name": "Extensión Overhead (Sobre la cabeza)",
+          "description": "Extensión del codo con el brazo elevado sobre la cabeza en el plano sagital",
+          "plane": "sagital",
+          "movement_type": "flexion_extension",
+          "difficulty": "medium",
+          "duration_seconds": 14,
+          "rom_capture_config": {
+            "active_capture_duration": 14,
+            "rom_window_seconds": 2,
+            "visual_countdown_duration": 15,
+            "relaxation_buffer": 1
+          },
+          "normal_range": {
+            "min": 0,
+            "max": 160,
+            "optimal_min": 10,
+            "optimal_max": 150
+          },
+          "optimal_range": {"min": 10, "max": 150},
+          "calculation_method": "overhead_extension_angle",
+          "required_landmarks": [11, 12, 13, 14, 15, 16],
+          "primary_side": "bilateral",
+          "reference_points": {
+            "primary": ["shoulder", "elbow", "wrist"],
+            "calculation_type": "angle_3_points",
+            "description": "Ángulo hombro-codo-muñeca con brazo elevado"
+          },
+          "instructions": {
+            "position": "De pie o sentado, eleva el brazo completamente sobre la cabeza con el codo flexionado detrás de la cabeza",
+            "movement": "Extiende el codo llevando el antebrazo hacia arriba hasta la extensión completa",
+            "warning": "Mantén el brazo elevado y el hombro estable. No arquees la espalda.",
+            "tips": "Colócate de lado a la cámara. Imagina que estás lanzando una pelota hacia arriba o alcanzando un objeto alto."
+          },
+          "camera_orientation": "sagital",
+          "tts_phases": {
+            "welcome": {
+              "text": "Bienvenido al análisis de Extensión Overhead",
+              "duration": 2,
+              "timing": "immediate"
+            },
+            "positioning": {
+              "text": "Ponte de perfil con el brazo arriba y codo doblado",
+              "duration": 4,
+              "priority": "critical",
+              "validation": {
+                "required_orientation": "sagital",
+                "timeout": 5
+              }
+            },
+            "preparation": [
+              {
+                "text": "3",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "2",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "1",
+                "duration": 1,
+                "timing": "pre_calibration"
+              }
+            ],
+            "exercise": [
+              {
+                "text": "Extiende el codo llevando la mano hacia arriba",
+                "duration": 3,
+                "timing": "start"
+              },
+              {
+                "text": "Estira completamente el brazo hacia arriba",
+                "duration": 2,
+                "timing": 7
+              },
+              {
+                "text": "Muy bien, brazo completamente extendido",
+                "duration": 2,
+                "timing": 10
+              }
+            ],
+            "countdown": [
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 11
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 12
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 13
+              },
+              {
+                "text": "Relájate y baja el brazo lentamente",
+                "duration": 1,
+                "timing": 14
+              }
+            ]
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Tríceps braquial (cabeza larga, lateral y medial)", "Ancóneo"],
+            "compensations": "Evitar hiperextensión lumbar, movimiento del hombro o inclinación del tronco",
+            "clinical_relevance": "Evaluación funcional para actividades sobre la cabeza (ADL): alcanzar objetos altos, movimientos deportivos (lanzamiento, saque en tenis). Bibliografía: Magee DJ. Orthopedic Physical Assessment (2021), Neumann DA. Kinesiology of the Musculoskeletal System (2017)"
+          }
+        }
+      }
+    },
+    "neck": {
+      "name": "Cuello",
+      "description": "Columna cervical C1-C7",
+      "icon": "person-circle",
+      "difficulty_level": "intermediate",
+      "anatomical_region": "axial_skeleton",
+      "exercises": {
+        "flexion": {
+          "name": "Flexión Cervical",
+          "description": "Inclinar la cabeza hacia adelante llevando el mentón al pecho",
+          "plane": "sagital",
+          "movement_type": "flexion_extension",
+          "difficulty": "easy",
+          "duration_seconds": 30,
+          "normal_range": {"min": 0, "max": 45},
+          "optimal_range": {"min": 10, "max": 40},
+          "calculation_method": "neck_flexion",
+          "required_landmarks": [0, 7, 8, 11, 12],
+          "primary_side": "bilateral",
+          "reference_points": {
+            "calculation": "head_neck_trunk_angle",
+            "description": "Ángulo formado entre cabeza-cuello-tronco"
+          },
+          "instructions": {
+            "position": "Sentado erguido con la espalda recta",
+            "movement": "Inclina la cabeza hacia adelante llevando el mentón hacia el pecho",
+            "warning": "Movimiento lento y suave, detente si sientes dolor.",
+            "tips": "Imagina que estás haciendo un 'sí' exagerado con la cabeza"
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Flexores cervicales profundos", "Esternocleidomastoideo"],
+            "compensations": "Evitar flexión de la columna dorsal o movimiento de hombros",
+            "clinical_relevance": "Evaluación de la movilidad flexora cervical"
+          }
+        },
+        "rotation": {
+          "name": "Rotación Cervical",
+          "description": "Girar la cabeza hacia izquierda y derecha",
+          "plane": "transversal",
+          "movement_type": "rotation",
+          "difficulty": "easy",
+          "duration_seconds": 30,
+          "normal_range": {"min": 0, "max": 80},
+          "optimal_range": {"min": 10, "max": 75},
+          "calculation_method": "neck_rotation",
+          "required_landmarks": [0, 7, 8, 9, 10],
+          "primary_side": "bilateral",
+          "reference_points": {
+            "calculation": "head_rotation_angle",
+            "description": "Ángulo de rotación de la cabeza respecto al tronco"
+          },
+          "instructions": {
+            "position": "Sentado erguido mirando al frente",
+            "movement": "Gira la cabeza hacia un lado como si miraras por encima del hombro",
+            "warning": "No fuerces el movimiento, detente al sentir tensión.",
+            "tips": "Mantén los hombros relajados y quietos durante el giro"
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Esternocleidomastoideo", "Músculos suboccipitales"],
+            "compensations": "Evitar elevación o rotación de hombros",
+            "clinical_relevance": "Evaluación de la movilidad rotacional cervical"
+          }
+        },
+        "lateral_flexion": {
+          "name": "Flexión Lateral Cervical",
+          "description": "Inclinar la cabeza lateralmente hacia el hombro",
+          "plane": "frontal",
+          "movement_type": "lateral_flexion",
+          "difficulty": "medium",
+          "duration_seconds": 30,
+          "normal_range": {"min": 0, "max": 45},
+          "optimal_range": {"min": 5, "max": 40},
+          "calculation_method": "neck_lateral_flexion",
+          "required_landmarks": [0, 7, 8, 11, 12],
+          "primary_side": "unilateral",
+          "reference_points": {
+            "calculation": "head_lateral_angle",
+            "description": "Ángulo lateral de la cabeza respecto al tronco"
+          },
+          "instructions": {
+            "position": "Sentado erguido con los hombros relajados",
+            "movement": "Inclina la cabeza lateralmente llevando la oreja hacia el hombro",
+            "warning": "No eleves el hombro, solo inclina la cabeza.",
+            "tips": "Imagina que quieres tocar el hombro con la oreja sin mover el hombro"
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Escalenos", "Esternocleidomastoideo unilateral"],
+            "compensations": "Evitar elevación del hombro o flexión lateral del tronco",
+            "clinical_relevance": "Evaluación de la movilidad lateral cervical"
+          }
+        }
+      }
+    },
+    "spine": {
+      "name": "Columna",
+      "description": "Columna vertebral toraco-lumbar",
+      "icon": "person-standing",
+      "difficulty_level": "advanced",
+      "anatomical_region": "axial_skeleton",
+      "exercises": {
+        "flexion": {
+          "name": "Flexión de Tronco",
+          "plane": "sagital",
+          "normal_range": {"min": 0, "max": 80}
+        },
+        "extension": {
+          "name": "Extensión de Tronco", 
+          "plane": "sagital",
+          "normal_range": {"min": 0, "max": 25}
+        },
+        "lateral_flexion": {
+          "name": "Flexión Lateral de Tronco",
+          "plane": "frontal",
+          "normal_range": {"min": 0, "max": 35}
+        }
+      }
+    },
+    "hip": {
+      "name": "Cadera",
+      "description": "Articulación coxofemoral",
+      "icon": "hips_.png",
+      "difficulty_level": "intermediate",
+      "anatomical_region": "lower_extremity",
+      "exercises": {
+        "flexion": {
+          "name": "Flexión de Cadera",
+          "description": "Elevar la rodilla hacia el pecho",
+          "plane": "sagital",
+          "movement_type": "flexion_extension",
+          "difficulty": "easy",
+          "duration_seconds": 14,
+          "rom_capture_config": {
+            "active_capture_duration": 14,
+            "rom_window_seconds": 2,
+            "visual_countdown_duration": 15,
+            "relaxation_buffer": 1
+          },
+          "normal_range": {"min": 0, "max": 120},
+          "optimal_range": {"min": 10, "max": 110},
+          "calculation_method": "hip_flexion",
+          "required_landmarks": [11, 12, 23, 24, 25, 26],
+          "primary_side": "unilateral",
+          "reference_points": {
+            "calculation": "trunk_hip_knee_angle",
+            "description": "Ángulo formado entre tronco-cadera-rodilla"
+          },
+          "instructions": {
+            "position": "De pie con las manos en las caderas",
+            "movement": "Eleva una rodilla hacia el pecho lo más alto posible",
+            "warning": "Mantén la espalda recta y evita inclinarte hacia atrás.",
+            "tips": "Apóyate en una pared si necesitas mantener el equilibrio"
+          },
+          "camera_orientation": "sagital",
+          "tts_phases": {
+            "welcome": {
+              "text": "Bienvenido al análisis de Flexión de Cadera",
+              "duration": 2,
+              "timing": "immediate"
+            },
+            "positioning": {
+              "text": "Ponte de perfil con las manos en las caderas",
+              "duration": 4,
+              "priority": "critical",
+              "validation": {
+                "required_orientation": "sagital",
+                "timeout": 5
+              }
+            },
+            "preparation": [
+              {
+                "text": "3",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "2",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "1",
+                "duration": 1,
+                "timing": "pre_calibration"
+              }
+            ],
+            "exercise": [
+              {
+                "text": "Eleva la rodilla hacia el pecho",
+                "duration": 3,
+                "timing": "start"
+              },
+              {
+                "text": "Sigue subiendo, lo más alto que puedas",
+                "duration": 2,
+                "timing": 4
+              },
+              {
+                "text": "Mantén la espalda recta",
+                "duration": 2,
+                "timing": 7
+              },
+              {
+                "text": "Muy bien, sostén ahí arriba",
+                "duration": 2,
+                "timing": 10
+              }
+            ],
+            "countdown": [
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 11
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 12
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 13
+              },
+              {
+                "text": "Relájate y baja la pierna lentamente",
+                "duration": 1,
+                "timing": 14
+              }
+            ]
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Iliopsoas", "Recto femoral", "Sartorio"],
+            "compensations": "Evitar compensación con flexión lumbar",
+            "clinical_relevance": "Evaluación de la función flexora de cadera"
+          }
+        },
+        "abduction": {
+          "name": "Abducción de Cadera",
+          "description": "Separar la pierna lateralmente del cuerpo",
+          "plane": "frontal",
+          "movement_type": "abduction_adduction",
+          "difficulty": "easy",
+          "duration_seconds": 14,
+          "rom_capture_config": {
+            "active_capture_duration": 14,
+            "rom_window_seconds": 2,
+            "visual_countdown_duration": 15,
+            "relaxation_buffer": 1
+          },
+          "normal_range": {"min": 0, "max": 45},
+          "optimal_range": {"min": 5, "max": 40},
+          "calculation_method": "hip_abduction",
+          "required_landmarks": [11, 12, 23, 24, 25, 26],
+          "primary_side": "unilateral",
+          "reference_points": {
+            "calculation": "pelvis_hip_knee_angle",
+            "description": "Ángulo formado entre pelvis-cadera-rodilla"
+          },
+          "instructions": {
+            "position": "De pie con las piernas juntas, apoyado en una pared",
+            "movement": "Separa una pierna lateralmente manteniendo ambas rodillas extendidas",
+            "warning": "Mantén ambos pies apuntando hacia adelante.",
+            "tips": "No inclines el cuerpo hacia el lado contrario"
+          },
+          "camera_orientation": "frontal",
+          "tts_phases": {
+            "welcome": {
+              "text": "Bienvenido al análisis de Abducción de Cadera",
+              "duration": 2,
+              "timing": "immediate"
+            },
+            "positioning": {
+              "text": "Ponte de frente con pies juntos y manos en caderas",
+              "duration": 4,
+              "priority": "critical",
+              "validation": {
+                "required_orientation": "frontal",
+                "timeout": 5
+              }
+            },
+            "preparation": [
+              {
+                "text": "3",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "2",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "1",
+                "duration": 1,
+                "timing": "pre_calibration"
+              }
+            ],
+            "exercise": [
+              {
+                "text": "Separa la pierna hacia el costado sin mover el tronco",
+                "duration": 3,
+                "timing": "start"
+              },
+              {
+                "text": "Mantén ambas rodillas rectas, sigue abriendo",
+                "duration": 2,
+                "timing": 7
+              },
+              {
+                "text": "Muy bien, pierna bien separada",
+                "duration": 2,
+                "timing": 10
+              }
+            ],
+            "countdown": [
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 11
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 12
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 13
+              },
+              {
+                "text": "Relájate y cierra la pierna lentamente",
+                "duration": 1,
+                "timing": 14
+              }
+            ]
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Glúteo medio", "Glúteo menor", "Tensor de fascia lata"],
+            "compensations": "Evitar inclinación lateral del tronco o elevación de pelvis",
+            "clinical_relevance": "Evaluación de la estabilidad lateral de cadera"
+          }
+        },
+        "adduction": {
+          "name": "Aducción de Cadera",
+          "description": "Mover la pierna hacia la línea media del cuerpo cruzando por delante de la pierna de apoyo",
+          "plane": "frontal",
+          "movement_type": "abduction_adduction",
+          "difficulty": "easy",
+          "duration_seconds": 14,
+          "rom_capture_config": {
+            "active_capture_duration": 14,
+            "rom_window_seconds": 2,
+            "visual_countdown_duration": 15,
+            "relaxation_buffer": 1
+          },
+          "normal_range": {"min": 0, "max": 30},
+          "optimal_range": {"min": 5, "max": 25},
+          "calculation_method": "hip_adduction",
+          "required_landmarks": [11, 12, 23, 24, 25, 26],
+          "primary_side": "unilateral",
+          "reference_points": {
+            "calculation": "pelvis_hip_knee_angle_adduction",
+            "description": "Ángulo formado entre pelvis-cadera-rodilla al cruzar la pierna"
+          },
+          "instructions": {
+            "position": "De pie con apoyo (pared o silla), piernas ligeramente separadas",
+            "movement": "Cruza una pierna por delante de la otra hacia la línea media del cuerpo",
+            "warning": "Mantén ambas rodillas extendidas y pies apuntando hacia adelante. No rotes la cadera.",
+            "tips": "Mantén la pelvis nivelada. El movimiento es pequeño pero controlado. Vista frontal a la cámara."
+          },
+          "camera_orientation": "frontal",
+          "tts_phases": {
+            "welcome": {
+              "text": "Bienvenido al análisis de Aducción de Cadera",
+              "duration": 2,
+              "timing": "immediate"
+            },
+            "positioning": {
+              "text": "Ponte de frente con los pies separados",
+              "duration": 4,
+              "priority": "critical",
+              "validation": {
+                "required_orientation": "frontal",
+                "timeout": 5
+              }
+            },
+            "preparation": [
+              {
+                "text": "3",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "2",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "1",
+                "duration": 1,
+                "timing": "pre_calibration"
+              }
+            ],
+            "exercise": [
+              {
+                "text": "Cruza la pierna por delante hacia la línea media",
+                "duration": 3,
+                "timing": "start"
+              },
+              {
+                "text": "Mantén las rodillas rectas, sigue cruzando",
+                "duration": 2,
+                "timing": 7
+              },
+              {
+                "text": "Muy bien, pierna cruzada al centro",
+                "duration": 2,
+                "timing": 10
+              }
+            ],
+            "countdown": [
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 11
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 12
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 13
+              },
+              {
+                "text": "Relájate y regresa a la posición inicial",
+                "duration": 1,
+                "timing": 14
+              }
+            ]
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Aductores (largo, corto, mayor)", "Grácil", "Pectíneo"],
+            "compensations": "Evitar inclinación de pelvis, rotación de cadera o flexión de rodilla",
+            "clinical_relevance": "Evaluación de fuerza de aductores, estabilidad pélvica. Importante en marcha, cambios de dirección y estabilidad monopodal. Bibliografía: Neumann DA. Kinesiology of the Musculoskeletal System (2017), Kendall FP. Muscles: Testing and Function (2005)"
+          }
+        },
+        "internal_rotation": {
+          "name": "Rotación Interna de Cadera",
+          "description": "Rotación del muslo hacia adentro manteniendo la cadera estable",
+          "plane": "transversal",
+          "movement_type": "rotation",
+          "difficulty": "medium",
+          "duration_seconds": 30,
+          "normal_range": {"min": 0, "max": 40},
+          "optimal_range": {"min": 5, "max": 35},
+          "calculation_method": "hip_internal_rotation",
+          "required_landmarks": [11, 12, 23, 24, 25, 26],
+          "primary_side": "unilateral",
+          "reference_points": {
+            "calculation": "hip_knee_rotation_angle",
+            "description": "Ángulo de rotación del muslo respecto a la pelvis"
+          },
+          "instructions": {
+            "position": "De pie con la rodilla ligeramente flexionada y el pie apoyado",
+            "movement": "Gira la rodilla hacia adentro manteniendo la cadera estable",
+            "warning": "Movimiento controlado, evita dolor o torsión excesiva",
+            "tips": "Colócate de frente a la cámara para que se vea la rotación"
+          },
+          "camera_orientation": "frontal",
+          "tts_phases": {
+            "preparation": [
+              {
+                "text": "Ponte de frente a la cámara",
+                "duration": 2,
+                "priority": "critical"
+              },
+              {
+                "text": "Comenzamos el análisis en 3, 2, 1",
+                "duration": 3,
+                "timing": "pre_calibration"
+              }
+            ],
+            "exercise": [
+              {
+                "text": "Gira la rodilla hacia adentro sin mover la cadera",
+                "duration": 4,
+                "timing": "start"
+              },
+              {
+                "text": "Solo rota la rodilla, no muevas la cadera",
+                "duration": 2,
+                "timing": 10
+              },
+              {
+                "text": "Muy bien, mantén la rotación",
+                "duration": 1,
+                "timing": 15
+              }
+            ],
+            "countdown": [
+              {
+                "text": "Mantén esa posición máxima",
+                "duration": 1,
+                "timing": 22
+              },
+              {
+                "beep": true,
+                "text": "3",
+                "duration": 1,
+                "timing": 25
+              },
+              {
+                "beep": true,
+                "text": "2",
+                "duration": 1,
+                "timing": 26
+              },
+              {
+                "beep": true,
+                "text": "1",
+                "duration": 1,
+                "timing": 27
+              },
+              {
+                "text": "Relájate y regresa al centro",
+                "duration": 1,
+                "timing": 28
+              }
+            ]
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Glúteo menor", "Glúteo medio (fibras anteriores)", "Tensor de fascia lata"],
+            "compensations": "Evitar inclinación de pelvis o rotación de tronco",
+            "clinical_relevance": "Evaluación de movilidad rotacional interna de cadera"
+          }
+        }
+      }
+    },
+    "knee": {
+      "name": "Rodilla",
+      "description": "Articulación tibiofemoral",
+      "icon": "knee_1.png",
+      "difficulty_level": "beginner", 
+      "anatomical_region": "lower_extremity",
+      "exercises": {
+        "flexion": {
+          "name": "Flexión de Rodilla",
+          "description": "Doblar la rodilla llevando el talón hacia el glúteo",
+          "plane": "sagital",
+          "movement_type": "flexion_extension",
+          "difficulty": "easy",
+          "duration_seconds": 14,
+          "rom_capture_config": {
+            "active_capture_duration": 14,
+            "rom_window_seconds": 2,
+            "visual_countdown_duration": 15,
+            "relaxation_buffer": 1
+          },
+          "normal_range": {"min": 0, "max": 135},
+          "optimal_range": {"min": 10, "max": 120},
+          "calculation_method": "knee_flexion",
+          "required_landmarks": [23, 24, 25, 26, 27, 28],
+          "primary_side": "unilateral",
+          "reference_points": {
+            "calculation": "hip_knee_ankle_angle",
+            "description": "Ángulo formado entre cadera-rodilla-tobillo"
+          },
+          "instructions": {
+            "position": "De pie con las piernas ligeramente separadas",
+            "movement": "Dobla la rodilla llevando el talón hacia el glúteo",
+            "warning": "Mantén el equilibrio y evita movimientos bruscos.",
+            "tips": "Apóyate en una pared o silla si necesitas mantener el equilibrio"
+          },
+          "camera_orientation": "sagital",
+          "tts_phases": {
+            "welcome": {
+              "text": "Bienvenido al análisis de Flexión de Rodilla",
+              "duration": 2,
+              "timing": "immediate"
+            },
+            "positioning": {
+              "text": "Ponte de perfil de pie con piernas separadas",
+              "duration": 4,
+              "priority": "critical",
+              "validation": {
+                "required_orientation": "sagital",
+                "timeout": 5
+              }
+            },
+            "preparation": [
+              {
+                "text": "3",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "2",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "1",
+                "duration": 1,
+                "timing": "pre_calibration"
+              }
+            ],
+            "exercise": [
+              {
+                "text": "Dobla la rodilla llevando el talón hacia el glúteo",
+                "duration": 3,
+                "timing": "start"
+              },
+              {
+                "text": "Sigue subiendo el talón hasta tocar el glúteo",
+                "duration": 2,
+                "timing": 7
+              },
+              {
+                "text": "Muy bien, rodilla bien flexionada",
+                "duration": 2,
+                "timing": 10
+              }
+            ],
+            "countdown": [
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 11
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 12
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 13
+              },
+              {
+                "text": "Relájate y baja la pierna lentamente",
+                "duration": 1,
+                "timing": 14
+              }
+            ]
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Bíceps femoral", "Semitendinoso", "Semimembranoso"],
+            "compensations": "Evitar inclinación del tronco o elevación de cadera",
+            "clinical_relevance": "Evaluación de la función flexora posterior del muslo"
+          }
+        },
+        "extension": {
+          "name": "Extensión Terminal de Rodilla (De Pie)",
+          "description": "Enderezar completamente la rodilla desde flexión leve, en carga (Terminal Knee Extension)",
+          "plane": "sagital",
+          "movement_type": "flexion_extension",
+          "difficulty": "easy",
+          "duration_seconds": 14,
+          "rom_capture_config": {
+            "active_capture_duration": 14,
+            "rom_window_seconds": 2,
+            "visual_countdown_duration": 15,
+            "relaxation_buffer": 1
+          },
+          "normal_range": {"min": 0, "max": 20},
+          "optimal_range": {"min": 0, "max": 15},
+          "calculation_method": "knee_extension",
+          "required_landmarks": [23, 24, 25, 26, 27, 28],
+          "primary_side": "unilateral",
+          "reference_points": {
+            "calculation": "hip_knee_ankle_angle",
+            "description": "Ángulo de extensión terminal de rodilla (últimos grados de extensión)"
+          },
+          "instructions": {
+            "position": "De pie con la pierna ligeramente flexionada (rodilla doblada unos 10-15 grados). Mantén el equilibrio.",
+            "movement": "Endereza completamente la rodilla presionando el talón contra el suelo. Contrae el cuádriceps activamente. Vuelve a la posición inicial con flexión leve.",
+            "warning": "Movimiento controlado. NO hiperextender la rodilla. Enfócate en los últimos grados de extensión.",
+            "tips": "Apóyate en una silla o pared si necesitas equilibrio. Siente la contracción del músculo cuádriceps en el muslo."
+          },
+          "camera_orientation": "sagital",
+          "tts_phases": {
+            "welcome": {
+              "text": "Bienvenido al análisis de Extensión Terminal de Rodilla",
+              "duration": 2,
+              "timing": "immediate"
+            },
+            "positioning": {
+              "text": "Ponte de perfil con la pierna ligeramente flexionada",
+              "duration": 4,
+              "priority": "critical",
+              "validation": {
+                "required_orientation": "sagital",
+                "timeout": 5
+              }
+            },
+            "preparation": [
+              {
+                "text": "3",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "2",
+                "duration": 1,
+                "timing": "pre_calibration"
+              },
+              {
+                "text": "1",
+                "duration": 1,
+                "timing": "pre_calibration"
+              }
+            ],
+            "exercise": [
+              {
+                "text": "Endereza la rodilla completamente presionando el talón",
+                "duration": 3,
+                "timing": "start"
+              },
+              {
+                "text": "Contrae el cuádriceps, rodilla bien recta",
+                "duration": 2,
+                "timing": 7
+              },
+              {
+                "text": "Muy bien, pierna totalmente extendida",
+                "duration": 2,
+                "timing": 10
+              }
+            ],
+            "countdown": [
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 11
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 12
+              },
+              {
+                "beep": true,
+                "text": "",
+                "duration": 1,
+                "timing": 13
+              },
+              {
+                "text": "Relájate y regresa a la posición inicial",
+                "duration": 1,
+                "timing": 14
+              }
+            ]
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Cuádriceps femoral (Recto femoral, Vasto medial, Vasto lateral, Vasto intermedio)"],
+            "compensations": "Evitar inclinación del tronco o rotación de cadera",
+            "clinical_relevance": "Ejercicio terapéutico postoperatorio. Crítico para recuperación de LCA y fortalecimiento del cuádriceps. Enfocado en extensión terminal (últimos 10-15 grados)."
+          }
+        },
+        "functional_squat": {
+          "name": "Sentadilla Funcional",
+          "description": "Descenso controlado en sentadilla para evaluar función de rodilla",
+          "plane": "sagital",
+          "movement_type": "functional",
+          "difficulty": "medium",
+          "duration_seconds": 30,
+          "normal_range": {"min": 0, "max": 120},
+          "calculation_method": "knee_functional_squat",
+          "required_landmarks": [11,12,23,24,25,26,27,28],
+          "primary_side": "bilateral",
+          "instructions": {
+            "position": "De pie con los pies a la anchura de las caderas",
+            "movement": "Desciende como si fueras a sentarte, manteniendo el pecho erguido",
+            "warning": "No dejes que las rodillas sobrepasen demasiado la punta del pie",
+            "tips": "Colócate frente a la cámara para evaluar la alineación"
+          },
+          "camera_orientation": "sagital",
+          "tts_phases": {
+            "preparation": [
+              {
+                "text": "Ponte de perfil a la cámara",
+                "duration": 2,
+                "priority": "critical"
+              },
+              {
+                "text": "Comenzamos el análisis en 3, 2, 1",
+                "duration": 3,
+                "timing": "pre_calibration"
+              }
+            ],
+            "exercise": [
+              {
+                "text": "Baja como si fueras a sentarte con la espalda recta",
+                "duration": 4,
+                "timing": "start"
+              },
+              {
+                "text": "Rodillas alineadas, pecho arriba, sigue bajando",
+                "duration": 2,
+                "timing": 10
+              },
+              {
+                "text": "Muy bien, mantén la postura",
+                "duration": 1,
+                "timing": 15
+              }
+            ],
+            "countdown": [
+              {
+                "text": "Mantén esa posición máxima",
+                "duration": 1,
+                "timing": 22
+              },
+              {
+                "beep": true,
+                "text": "3",
+                "duration": 1,
+                "timing": 25
+              },
+              {
+                "beep": true,
+                "text": "2",
+                "duration": 1,
+                "timing": 26
+              },
+              {
+                "beep": true,
+                "text": "1",
+                "duration": 1,
+                "timing": 27
+              },
+              {
+                "text": "Relájate y sube lentamente",
+                "duration": 1,
+                "timing": 28
+              }
+            ]
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Cuádriceps", "Glúteo mayor", "Isquiotibiales"],
+            "compensations": "Evitar colapsos en valgo o rotación de rodilla",
+            "clinical_relevance": "Evaluación funcional de cadena cinética cerrada"
+          }
+        }
+      }
+    },
+    "ankle": {
+      "name": "Tobillo",
+      "description": "Articulación talocrural",
+      "icon": "ankle_1.png",
+      "difficulty_level": "beginner", 
+      "anatomical_region": "lower_extremity",
+      "anatomical_info": {
+        "medical_name": "Articulación talocrural",
+        "joint_type": "Trocleartrosis (bisagra)",
+        "mobility": "Uniaxial - Flexión plantar y dorsiflexión"
+      },
+      "exercises": {
+        "flexion": {
+          "name": "Flexión Plantar",
+          "description": "Movimiento del pie hacia abajo (punta hacia el suelo)",
+          "plane": "sagital",
+          "movement_type": "flexion_extension",
+          "difficulty": "easy",
+          "duration_seconds": 14,
+          "rom_capture_config": {
+            "active_capture_duration": 14,
+            "rom_window_seconds": 2,
+            "visual_countdown_duration": 15,
+            "relaxation_buffer": 1
+          },
+          "normal_range": {"min": 40, "max": 90},
+          "optimal_range": {"min": 60, "max": 85},
+          "calculation_method": "ankle_plantar_flexion",
+          "required_landmarks": [25, 26, 27, 28, 31, 32],
+          "primary_side": "bilateral",
+          "reference_points": {
+            "calculation": "knee_ankle_foot_angle",
+            "description": "Ángulo formado entre rodilla-tobillo-pie"
+          },
+          "instructions": {
+            "position": "De pie o sentado con la pierna extendida",
+            "movement": "Mueve el pie hacia abajo, apuntando los dedos hacia el suelo",
+            "warning": "Mantén la pierna estable, solo mueve el pie.",
+            "tips": "Asegúrate de que tanto rodillas como pies sean visibles en cámara"
+          },
+          "camera_orientation": "sagital",
+          "tts_phases": {
+            "welcome": {
+              "text": "Bienvenido al análisis de Flexión Plantar",
+              "duration": 2,
+              "timing": "immediate"
+            },
+            "positioning": {
+              "text": "Ponte de perfil con la pierna extendida",
+              "duration": 4,
+              "priority": "critical",
+              "validation": {
+                "required_orientation": "sagital",
+                "timeout": 5
+              }
+            },
+            "preparation": [
+              { "text": "3", "duration": 1, "timing": "pre_calibration" },
+              { "text": "2", "duration": 1, "timing": "pre_calibration" },
+              { "text": "1", "duration": 1, "timing": "pre_calibration" }
+            ],
+            "exercise": [
+              { "text": "Empuja con la planta, eleva el talón", "duration": 3, "timing": "start" },
+              { "text": "Sigue subiendo, ponte de puntillas", "duration": 2, "timing": 4 },
+              { "text": "Mantén arriba, sigue empujando", "duration": 2, "timing": 7 },
+              { "text": "Muy bien, sostén en lo más alto", "duration": 2, "timing": 10 }
+            ],
+            "countdown": [
+              { "beep": true, "text": "", "duration": 1, "timing": 11 },
+              { "beep": true, "text": "", "duration": 1, "timing": 12 },
+              { "beep": true, "text": "", "duration": 1, "timing": 13 },
+              { "text": "Relájate y baja el talón lentamente", "duration": 1, "timing": 14 }
+            ]
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Gastrocnemio", "Sóleo", "Tibial posterior"],
+            "compensations": "Evitar flexión de rodilla o cadera",
+            "clinical_relevance": "Evaluación de la función del tríceps sural"
+          }
+        },
+        "dorsiflexion": {
+          "name": "Dorsiflexión",
+          "description": "Movimiento del pie hacia arriba (punta hacia la espinilla)",
+          "plane": "sagital",
+          "movement_type": "flexion_extension",
+          "difficulty": "easy",
+          "duration_seconds": 14,
+          "rom_capture_config": {
+            "active_capture_duration": 14,
+            "rom_window_seconds": 2,
+            "visual_countdown_duration": 15,
+            "relaxation_buffer": 1
+          },
+          "normal_range": {"min": 90, "max": 110},
+          "optimal_range": {"min": 100, "max": 110},
+          "calculation_method": "ankle_dorsiflexion",
+          "required_landmarks": [25, 26, 27, 28, 31, 32],
+          "primary_side": "bilateral",
+          "reference_points": {
+            "calculation": "knee_ankle_foot_angle",
+            "description": "Ángulo formado entre rodilla-tobillo-pie"
+          },
+          "instructions": {
+            "position": "De pie o sentado con la pierna extendida",
+            "movement": "Mueve el pie hacia arriba, llevando los dedos hacia la espinilla",
+            "warning": "Mantén la pierna estable, solo mueve el pie.",
+            "tips": "Asegúrate de que tanto rodillas como pies sean visibles en cámara"
+          },
+          "camera_orientation": "sagital",
+          "tts_phases": {
+            "welcome": {
+              "text": "Bienvenido al análisis de Dorsiflexión",
+              "duration": 2,
+              "timing": "immediate"
+            },
+            "positioning": {
+              "text": "Ponte de perfil con la pierna extendida",
+              "duration": 4,
+              "priority": "critical",
+              "validation": {
+                "required_orientation": "sagital",
+                "timeout": 5
+              }
+            },
+            "preparation": [
+              { "text": "3", "duration": 1, "timing": "pre_calibration" },
+              { "text": "2", "duration": 1, "timing": "pre_calibration" },
+              { "text": "1", "duration": 1, "timing": "pre_calibration" }
+            ],
+            "exercise": [
+              { "text": "Tira del empeine hacia arriba", "duration": 3, "timing": "start" },
+              { "text": "Sigue subiendo, acerca los dedos", "duration": 2, "timing": 4 },
+              { "text": "Mantén arriba, tira más", "duration": 2, "timing": 7 },
+              { "text": "Perfecto, máximo esfuerzo", "duration": 2, "timing": 10 }
+            ],
+            "countdown": [
+              { "beep": true, "text": "", "duration": 1, "timing": 11 },
+              { "beep": true, "text": "", "duration": 1, "timing": 12 },
+              { "beep": true, "text": "", "duration": 1, "timing": 13 },
+              { "text": "Relájate y baja el pie lentamente", "duration": 1, "timing": 14 }
+            ]
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Tibial anterior", "Extensor largo de los dedos"],
+            "compensations": "Evitar flexión de rodilla o cadera",
+            "clinical_relevance": "Evaluación de la función dorsiflexora del pie"
+          }
+        },
+        "inversion": {
+          "name": "Inversión del Tobillo",
+          "description": "Movimiento del pie hacia adentro",
+          "plane": "frontal",
+          "movement_type": "inversion_eversion",
+          "difficulty": "medium",
+          "duration_seconds": 30,
+          "normal_range": {"min": 0, "max": 35},
+          "optimal_range": {"min": 5, "max": 25},
+          "calculation_method": "ankle_inversion",
+          "required_landmarks": [25, 26, 27, 28, 31, 32],
+          "primary_side": "unilateral",
+          "reference_points": {
+            "calculation": "subtalar_joint_angle",
+            "description": "Ángulo de la articulación subastragalina"
+          },
+          "instructions": {
+            "position": "De pie con ambos pies paralelos",
+            "movement": "Inclina el pie hacia adentro manteniendo el tobillo estable",
+            "warning": "Movimiento suave y controlado. Detente si sientes molestia.",
+            "tips": "Mantén el equilibrio apoyándote si es necesario"
+          },
+          "camera_orientation": "frontal",
+          "tts_phases": {
+            "preparation": [
+              { "text": "Ponte de frente a la cámara", "duration": 2, "priority": "critical" },
+              { "text": "Comenzamos el análisis en 3, 2, 1", "duration": 3, "timing": "pre_calibration" }
+            ],
+            "exercise": [
+              { "text": "Pies paralelos. Ahora inclina la planta del pie hacia ADENTRO", "duration": 5, "timing": "start" },
+              { "text": "Sigue llevando la planta hacia ADENTRO", "duration": 2, "timing": 10 },
+              { "text": "Muy bien, mantén el tobillo estable", "duration": 1, "timing": 15 }
+            ],
+            "countdown": [
+              { "text": "Mantén esa posición máxima", "duration": 1, "timing": 22 },
+              { "beep": true, "text": "3", "duration": 1, "timing": 25 },
+              { "beep": true, "text": "2", "duration": 1, "timing": 26 },
+              { "beep": true, "text": "1", "duration": 1, "timing": 27 },
+              { "text": "Relájate y vuelve a posición neutral", "duration": 1, "timing": 28 }
+            ]
+          },
+        "eversion": {
+          "name": "Eversión del Tobillo",
+          "description": "Giro de la planta del pie hacia afuera (eversión)",
+          "plane": "frontal",
+          "movement_type": "inversion_eversion",
+          "difficulty": "medium",
+          "duration_seconds": 30,
+          "normal_range": {"min": 0, "max": 25},
+          "calculation_method": "ankle_eversion",
+          "required_landmarks": [25, 26, 27, 28, 31, 32],
+          "primary_side": "unilateral",
+          "instructions": {
+            "position": "De pie con ambos pies paralelos",
+            "movement": "Gira la planta del pie hacia afuera manteniendo el tobillo estable",
+            "warning": "Movimiento controlado; detente si hay dolor",
+            "tips": "Apóyate si necesitas equilibrio"
+          },
+          "camera_orientation": "frontal",
+          "tts_phases": {
+            "preparation": [
+              { "text": "Ponte de frente a la cámara", "duration": 2, "priority": "critical" },
+              { "text": "Comenzamos el análisis en 3, 2, 1", "duration": 3, "timing": "pre_calibration" }
+            ],
+            "exercise": [
+              { "text": "Pies paralelos, sujétate si necesitas. Ahora gira la planta del pie hacia AFUERA", "duration": 5, "timing": "start" },
+              { "text": "Sigue girando la planta hacia AFUERA", "duration": 2, "timing": 10 },
+              { "text": "Muy bien, mantén el tobillo estable", "duration": 1, "timing": 15 }
+            ],
+            "countdown": [
+              { "text": "Mantén esa posición máxima", "duration": 1, "timing": 22 },
+              { "beep": true, "text": "3", "duration": 1, "timing": 25 },
+              { "beep": true, "text": "2", "duration": 1, "timing": 26 },
+              { "beep": true, "text": "1", "duration": 1, "timing": 27 },
+              { "text": "Relájate y vuelve con control", "duration": 1, "timing": 28 }
+            ]
+          },
+          "biomechanical_notes": {
+            "muscles_involved": ["Peroneos", "Tibial anterior (estabilizador)"],
+            "compensations": "Evitar rotación de rodilla o cadera",
+            "clinical_relevance": "Evaluación de movilidad lateral y control peroneo"
+          }
+        },
+          "biomechanical_notes": {
+            "muscles_involved": ["Tibial anterior", "Tibial posterior"],
+            "compensations": "Evitar rotación de cadera o rodilla",
+            "clinical_relevance": "Evaluación de estabilidad lateral del tobillo"
+          }
+        }
+      }
+    }
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "created_by": "Sistema Educativo Biomecánico",
+    "last_updated": "2024-01-01",
+    "total_segments": 6,
+    "total_exercises": 21,
+    "supported_planes": ["sagital", "frontal", "transversal"],
+    "reference_literature": [
+      "Castro & Turiele - Biomecánica Clínica",
+      "Nordin & Frankel - Basic Biomechanics", 
+      "Kapandji - Fisiología Articular"
+    ]
+  },
+  "system_config": {
+    "version": "1.0.0",
+    "default_camera_timeout": 12,
+    "analysis_timeout": 30,
+    "quality_thresholds": {
+      "excellent": 0.9,
+      "good": 0.7,
+      "acceptable": 0.5,
+      "poor": 0.3
+    },
+    "supported_formats": ["mp4", "webm", "avi"],
+    "max_file_size_mb": 100
+  }
+}

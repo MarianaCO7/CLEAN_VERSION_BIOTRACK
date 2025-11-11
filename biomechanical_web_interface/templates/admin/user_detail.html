@@ -1,0 +1,530 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.username }} - Detalle Usuario{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}" class="text-biomech-cyan">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_users') }}" class="text-biomech-cyan">Usuarios</a></li>
+            <li class="breadcrumb-item active">{{ user.username }}</li>
+        </ol>
+    </nav>
+
+    <!-- Header del Usuario -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="user-detail-header p-4">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="user-avatar-large">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h2 class="text-white mb-2">{{ user.username }}</h2>
+                                <p class="text-light opacity-75 mb-3">
+                                    {{ user.full_name or 'Sin nombre completo' }}
+                                    {% if user.get_age() %}
+                                    <span class="mx-2">•</span> {{ user.get_age() }} años
+                                    {% endif %}
+                                </p>
+                                <div class="d-flex gap-3">
+                                    {% if user.role == 'admin' %}
+                                        <span class="badge bg-danger fs-6">Administrador</span>
+                                    {% elif user.role == 'tech' %}
+                                        <span class="badge bg-warning fs-6">Técnico</span>
+                                    {% else %}
+                                        <span class="badge bg-info fs-6">Estudiante</span>
+                                    {% endif %}
+                                    
+                                    {% if user.status == 'active' %}
+                                        <span class="badge bg-success fs-6">Activo</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary fs-6">{{ user.status|title }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('admin_edit_user', user_id=user.id) }}" class="btn btn-warning">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </a>
+                                    {% if user.id != session.user_id %}
+                                    <button type="button" class="btn btn-{{ 'secondary' if user.status == 'active' else 'success' }}" 
+                                            onclick="toggleUserStatus({{ user.id }}, '{{ user.username }}', '{{ user.status }}')">
+                                        <i class="bi bi-{{ 'pause' if user.status == 'active' else 'play' }}-circle"></i>
+                                        {{ 'Desactivar' if user.status == 'active' else 'Activar' }}
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Información del Usuario -->
+        <div class="col-lg-4">
+            <!-- Información Personal -->
+            <div class="biomech-glass p-4 mb-4">
+                <h4 class="text-biomech-cyan mb-3">
+                    <i class="bi bi-person-vcard"></i> Información Personal
+                </h4>
+                
+                <div class="info-item">
+                    <label>Email:</label>
+                    <span>{{ user.email or 'No especificado' }}</span>
+                </div>
+                
+                <div class="info-item">
+                    <label>Teléfono:</label>
+                    <span>{{ user.phone or 'No especificado' }}</span>
+                </div>
+                
+                <div class="info-item">
+                    <label>Fecha de Nacimiento:</label>
+                    <span>
+                        {% if user.date_of_birth %}
+                            {{ user.date_of_birth.strftime('%d/%m/%Y') }}
+                        {% else %}
+                            No especificado
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="info-item">
+                    <label>Altura:</label>
+                    <span>{{ user.height_cm }}cm</span>
+                </div>
+                
+                {% if user.emergency_contact %}
+                <div class="info-item">
+                    <label>Contacto de Emergencia:</label>
+                    <span>{{ user.emergency_contact }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Información del Sistema -->
+            <div class="biomech-glass p-4 mb-4">
+                <h4 class="text-biomech-green mb-3">
+                    <i class="bi bi-gear"></i> Información del Sistema
+                </h4>
+                
+                <div class="info-item">
+                    <label>ID de Usuario:</label>
+                    <span>#{{ user.id }}</span>
+                </div>
+                
+                <div class="info-item">
+                    <label>Creado:</label>
+                    <span>{{ user.created_at.strftime('%d/%m/%Y %H:%M') if user.created_at else 'No disponible' }}</span>
+                </div>
+                
+                {% if user.creator %}
+                <div class="info-item">
+                    <label>Creado por:</label>
+                    <span>{{ user.creator.username }}</span>
+                </div>
+                {% endif %}
+                
+                <div class="info-item">
+                    <label>Último Acceso:</label>
+                    <span>
+                        {% if user.last_login %}
+                            {{ user.last_login.strftime('%d/%m/%Y %H:%M') }}
+                        {% else %}
+                            <span class="text-muted">Nunca</span>
+                        {% endif %}
+                    </span>
+                </div>
+                
+                {% if user.modified_at %}
+                <div class="info-item">
+                    <label>Última Modificación:</label>
+                    <span>{{ user.modified_at.strftime('%d/%m/%Y %H:%M') }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Notas Médicas -->
+            {% if user.medical_notes %}
+            <div class="biomech-glass p-4 mb-4">
+                <h4 class="text-biomech-purple mb-3">
+                    <i class="bi bi-clipboard-pulse"></i> Notas Médicas
+                </h4>
+                <div class="medical-notes">
+                    {{ user.medical_notes }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Acciones Rápidas -->
+            <div class="biomech-glass p-4">
+                <h4 class="text-warning mb-3">
+                    <i class="bi bi-lightning"></i> Acciones Rápidas
+                </h4>
+                
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
+                        <i class="bi bi-key"></i> Resetear Contraseña
+                    </button>
+                    
+                    <a href="mailto:{{ user.email }}" class="btn btn-outline-info" 
+                       {% if not user.email %}disabled{% endif %}>
+                        <i class="bi bi-envelope"></i> Enviar Email
+                    </a>
+                    
+                    <button type="button" class="btn btn-outline-success" onclick="alert('Próximamente: Generar reporte PDF')">
+                        <i class="bi bi-file-pdf"></i> Generar Reporte
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Análisis y Actividad -->
+        <div class="col-lg-8">
+            <!-- Estadísticas -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card-small">
+                        <div class="stat-number">{{ user_stats.total_analyses or 0 }}</div>
+                        <div class="stat-label">Análisis Totales</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card-small">
+                        <div class="stat-number">{{ user_stats.shoulder_analyses or 0 }}</div>
+                        <div class="stat-label">Hombro</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card-small">
+                        <div class="stat-number">{{ user_stats.elbow_analyses or 0 }}</div>
+                        <div class="stat-label">Codo</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card-small">
+                        <div class="stat-number">{{ user_stats.knee_analyses or 0 }}</div>
+                        <div class="stat-label">Rodilla</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Análisis Recientes -->
+            <div class="biomech-glass p-4 mb-4">
+                <h4 class="text-biomech-cyan mb-3">
+                    <i class="bi bi-graph-up"></i> Análisis Recientes
+                </h4>
+                
+                {% if user.analyses %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-sm">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Ejercicio</th>
+                                <th>ROM</th>
+                                <th>Calidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for analysis in user.analyses[:10] %}
+                            <tr>
+                                <td>
+                                    <small>{{ analysis.created_at.strftime('%d/%m %H:%M') if analysis.created_at else 'N/A' }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ analysis.joint_type|title }}</span>
+                                    <small class="text-muted">{{ analysis.exercise_type|title }}</small>
+                                </td>
+                                <td>
+                                    <strong class="text-biomech-cyan">
+                                        {{ "%.1f°"|format(analysis.max_rom_achieved or analysis.max_angle or 0) }}
+                                    </strong>
+                                </td>
+                                <td>
+                                    {% set quality = analysis.quality_score or 0 %}
+                                    {% if quality >= 80 %}
+                                        <span class="badge bg-success">Excelente</span>
+                                    {% elif quality >= 60 %}
+                                        <span class="badge bg-info">Bueno</span>
+                                    {% elif quality >= 40 %}
+                                        <span class="badge bg-warning">Regular</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Bajo</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-graph-up text-muted" style="font-size: 3rem;"></i>
+                    <h5 class="text-muted mt-3">Sin análisis realizados</h5>
+                    <p class="text-muted">Este usuario aún no ha realizado ningún análisis.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Log de Auditoría -->
+            <div class="biomech-glass p-4">
+                <h4 class="text-biomech-purple mb-3">
+                    <i class="bi bi-clipboard-data"></i> Historial de Auditoría
+                </h4>
+                
+                {% if audit_logs %}
+                <div class="audit-log">
+                    {% for log in audit_logs %}
+                    <div class="audit-item">
+                        <div class="audit-icon">
+                            {% if log.action == 'CREATE' %}
+                                <i class="bi bi-person-plus text-success"></i>
+                            {% elif log.action == 'UPDATE' %}
+                                <i class="bi bi-pencil text-warning"></i>
+                            {% elif log.action == 'LOGIN' %}
+                                <i class="bi bi-box-arrow-in-right text-info"></i>
+                            {% elif log.action == 'DEACTIVATE' %}
+                                <i class="bi bi-pause-circle text-danger"></i>
+                            {% elif log.action == 'REACTIVATE' %}
+                                <i class="bi bi-play-circle text-success"></i>
+                            {% else %}
+                                <i class="bi bi-activity text-muted"></i>
+                            {% endif %}
+                        </div>
+                        <div class="audit-content">
+                            <div class="audit-action">
+                                <strong>{{ log.action|replace('_', ' ')|title }}</strong>
+                                <small class="text-muted">por {{ log.performer.username if log.performer else 'Sistema' }}</small>
+                            </div>
+                            <div class="audit-time">
+                                {{ log.performed_at.strftime('%d/%m/%Y %H:%M:%S') if log.performed_at else 'N/A' }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-clipboard-data text-muted" style="font-size: 3rem;"></i>
+                    <h5 class="text-muted mt-3">Sin historial de auditoría</h5>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Resetear Contraseña -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border-0">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-warning">
+                    <i class="bi bi-key"></i> Resetear Contraseña
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin_reset_password', user_id=user.id) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nueva contraseña para <strong>{{ user.username }}</strong>:</label>
+                        <input type="password" name="new_password" class="form-control bg-transparent border-secondary text-light" 
+                               placeholder="Nueva contraseña" required minlength="6">
+                        <div class="form-text text-muted">Mínimo 6 caracteres</div>
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        El usuario deberá usar esta nueva contraseña en su próximo inicio de sesión.
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-key"></i> Resetear Contraseña
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cambiar Estado -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border-0">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-warning">
+                    <i class="bi bi-exclamation-triangle"></i> Confirmar Acción
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="statusModalText" class="text-light"></p>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="statusForm" method="POST" style="display: inline;">
+                    <button type="submit" id="confirmBtn" class="btn">Confirmar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.user-detail-header {
+    background: linear-gradient(135deg, var(--biomech-purple), var(--biomech-cyan));
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+.user-detail-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(30%, -30%);
+}
+
+.user-avatar-large {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, var(--biomech-cyan), var(--biomech-green));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 3rem;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-item label {
+    font-weight: 600;
+    color: var(--biomech-text-secondary);
+    margin: 0;
+}
+
+.info-item span {
+    color: var(--biomech-text-primary);
+    text-align: right;
+}
+
+.stat-card-small {
+    background: var(--biomech-glass);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    border: 1px solid rgba(0, 212, 255, 0.1);
+    backdrop-filter: blur(10px);
+    margin-bottom: 1rem;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--biomech-cyan);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: var(--biomech-text-secondary);
+    font-size: 0.9rem;
+}
+
+.medical-notes {
+    background: rgba(156, 39, 176, 0.1);
+    border-left: 4px solid var(--biomech-purple);
+    padding: 1rem;
+    border-radius: 8px;
+    color: var(--biomech-text-primary);
+    line-height: 1.6;
+}
+
+.audit-log {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.audit-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.audit-item:last-child {
+    border-bottom: none;
+}
+
+.audit-icon {
+    margin-right: 1rem;
+    font-size: 1.2rem;
+    margin-top: 0.2rem;
+}
+
+.audit-content {
+    flex: 1;
+}
+
+.audit-action {
+    color: var(--biomech-text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.audit-time {
+    font-size: 0.85rem;
+    color: var(--biomech-text-secondary);
+}
+</style>
+
+<script>
+function toggleUserStatus(userId, username, currentStatus) {
+    const isActive = currentStatus === 'active';
+    const action = isActive ? 'desactivar' : 'activar';
+    const newStatus = isActive ? 'inactivo' : 'activo';
+    
+    document.getElementById('statusModalText').innerHTML = 
+        `¿Estás seguro que deseas <strong>${action}</strong> al usuario <strong>${username}</strong>?<br>
+         <small class="text-muted">El usuario quedará ${newStatus} en el sistema.</small>`;
+    
+    const form = document.getElementById('statusForm');
+    form.action = `/admin/users/${userId}/toggle-status`;
+    
+    const confirmBtn = document.getElementById('confirmBtn');
+    confirmBtn.className = `btn btn-${isActive ? 'warning' : 'success'}`;
+    confirmBtn.innerHTML = `<i class="bi bi-${isActive ? 'pause' : 'play'}-circle"></i> ${action.charAt(0).toUpperCase() + action.slice(1)}`;
+    
+    new bootstrap.Modal(document.getElementById('statusModal')).show();
+}
+</script>
+{% endblock %}

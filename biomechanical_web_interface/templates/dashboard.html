@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - BioTrack{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- 🎯 HEADER PRINCIPAL - MÁS LIMPIO -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="dashboard-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">
+                        <span class="gradient-text">Sistema de Análisis</span>
+                        <span class="hero-subtitle">Biomecánico</span>
+                    </h1>
+                    <p class="hero-description">
+                        Plataforma educativa para el análisis de movimientos articulares usando tecnología MediaPipe.
+                    </p>
+                    
+                    <div class="hero-actions">
+                        <a href="{{ url_for('exercises') }}" class="hero-button primary">
+                            <i class="bi bi-play-circle-fill"></i>
+                            <span>Ir a Articulaciones</span>
+                        </a>
+                        <button class="hero-button secondary" onclick="showGuide()">
+                            <i class="bi bi-info-circle"></i>
+                            <span>Guía de Uso</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📊 MÉTRICAS PRINCIPALES - SIMPLIFICADAS -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-3 col-md-6">
+            <div class="metric-card-modern">
+                <div class="metric-icon">
+                    <i class="bi bi-body-text"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-number">5</div>
+                    <div class="metric-label">Segmentos</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="metric-card-modern">
+                <div class="metric-icon success">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-number" id="analyses-count">{{ stats.total_analyses if stats else 0 }}</div>
+                    <div class="metric-label">Análisis</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="metric-card-modern">
+                <div class="metric-icon warning">
+                    <i class="bi bi-lightning-fill"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-number">Real</div>
+                    <div class="metric-label">Tiempo</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="metric-card-modern">
+                <div class="metric-icon info">
+                    <i class="bi bi-camera-video-fill"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-number">2D</div>
+                    <div class="metric-label">Detección</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🎯 ACCESO RÁPIDO - MÁS ELEGANTE -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="bi bi-lightning-fill"></i>
+                    Acceso Rápido
+                </h2>
+                <p class="section-subtitle">Inicia un análisis biomecánico inmediatamente</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <!-- Hombro -->
+        <div class="col-lg-4 col-md-6">
+            <div class="quick-access-card">
+                <div class="card-icon shoulder">
+                    <img src="{{ url_for('static', filename='images/joints/shoulder_1.png') }}" alt="Hombro" class="joint-icon">
+                </div>
+                <div class="card-content">
+                    <h4>Hombro</h4>
+                    <!--p>Análisis de flexión 0° - 180°</p-->
+                    <a href="{{ url_for('analysis', joint_type='shoulder') }}" class="quick-button">
+                        Analizar <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rodilla -->
+        <div class="col-lg-4 col-md-6">
+            <div class="quick-access-card">
+                <div class="card-icon knee">
+                    <img src="{{ url_for('static', filename='images/joints/knee_1.png') }}" alt="Rodilla" class="joint-icon">
+                </div>
+                <div class="card-content">
+                    <h4>Rodilla</h4>
+                    <!--<p>Evaluación de flexión 0° - 135°</p>-->
+                    <a href="{{ url_for('analysis', joint_type='knee') }}" class="quick-button">
+                        Analizar <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Codo -->
+        <div class="col-lg-4 col-md-6">
+            <div class="quick-access-card">
+                <div class="card-icon elbow">
+                    <img src="{{ url_for('static', filename='images/joints/elbow_1.png') }}" alt="Codo" class="joint-icon">
+                </div>
+                <div class="card-content">
+                    <h4>Codo</h4>
+                    <!--<p>Flexión del brazo 0° - 145°</p>-->
+                    <a href="{{ url_for('analysis', joint_type='elbow') }}" class="quick-button">
+                        Analizar <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📋 ENLACE A TODOS LOS EJERCICIOS -->
+    <div class="row">
+        <div class="col-12">
+            <div class="all-exercises-card">
+                <div class="exercises-content">
+                    <h3>¿Necesitas analizar otras articulaciones?</h3>
+                    <p>Accede a todos los ejercicios: Cadera, Tobillo y más</p>
+                    <a href="{{ url_for('exercises') }}" class="view-all-button">
+                        <i class="bi bi-grid-3x3-gap"></i>
+                        Ver Todos los Ejercicios
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 🎯 FUNCIONES DEL DASHBOARD
+function showGuide() {
+    // Prevent body scroll
+    document.body.classList.add('guide-open');
+    
+    // Modal mejorado con contenido claro y conciso
+    const guideHTML = `
+        <div class="guide-overlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle" onclick="closeGuideOverlay(event)">
+            <div class="guide-modal">
+                <div class="guide-header">
+                    <h3 id="guideTitle"><i class="bi bi-book-half"></i> Guía Rápida de Uso</h3>
+                    <button onclick="closeGuide()" aria-label="Cerrar guía">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="guide-content">
+                    <!-- Step 1: Seleccionar articulación -->
+                    <div class="guide-step">
+                        <div class="step-icon">
+                            <i class="bi bi-list-check"></i>
+                        </div>
+                        <div class="step-content">
+                            <h4>1. Selecciona una Articulación</h4>
+                            <p>Elige el segmento corporal y luego el ejercicio que deseas analizar:</p>
+                            <ul>
+                                <li><strong>Hombro, Codo, Cadera, Rodilla y Tobillo </strong></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Posicionar cámara -->
+                    <div class="guide-step">
+                        <div class="step-icon">
+                            <i class="bi bi-camera-video"></i>
+                        </div>
+                        <div class="step-content">
+                            <h4>2. Posiciona tu Cámara</h4>
+                            <p>Asegúrate de que tu cuerpo esté completamente visible:</p>
+                            <ul>
+                                <li>Fondo despejado sin obstáculos</li>
+                                <li>Buena iluminación frontal</li>
+                                <li>Distancia adecuada (2-3 metros)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Realizar movimiento -->
+                    <div class="guide-step">
+                        <div class="step-icon">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </div>
+                        <div class="step-content">
+                            <h4>3. Realiza el Movimiento</h4>
+                            <p>Sigue las instrucciones en pantalla con feedback en tiempo real.</p>
+                        </div>
+                    </div>
+
+                    <!-- CTA Button -->
+                    <div class="guide-cta">
+                        <button onclick="goToExercises()">
+                            Comenzar Ahora
+                            <i class="bi bi-arrow-right-circle-fill"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', guideHTML);
+    
+    // Focus trap: focus en modal al abrir
+    const modal = document.querySelector('.guide-modal');
+    if (modal) {
+        const closeButton = modal.querySelector('.guide-header button');
+        if (closeButton) closeButton.focus();
+    }
+    
+    // ESC key listener
+    document.addEventListener('keydown', handleGuideEscape);
+}
+
+function closeGuide() {
+    const overlay = document.querySelector('.guide-overlay');
+    if (overlay) {
+        overlay.remove();
+        document.body.classList.remove('guide-open');
+        document.removeEventListener('keydown', handleGuideEscape);
+    }
+}
+
+// Cerrar al hacer click en overlay (no en modal)
+function closeGuideOverlay(event) {
+    if (event.target.classList.contains('guide-overlay')) {
+        closeGuide();
+    }
+}
+
+// Cerrar con tecla ESC
+function handleGuideEscape(event) {
+    if (event.key === 'Escape') {
+        closeGuide();
+    }
+}
+
+// Redirect a exercises
+function goToExercises() {
+    window.location.href = "{{ url_for('exercises') }}";
+}
+
+// ✨ ANIMACIONES DE ENTRADA
+document.addEventListener('DOMContentLoaded', function() {
+    // Contador animado
+    const counters = document.querySelectorAll('.metric-number');
+    counters.forEach(counter => {
+        if (!isNaN(counter.textContent)) {
+            const target = parseInt(counter.textContent);
+            let current = 0;
+            const increment = target / 30;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    counter.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    counter.textContent = Math.floor(current);
+                }
+            }, 50);
+        }
+    });
+
+    // Hover effects para las cards
+    const quickCards = document.querySelectorAll('.quick-access-card');
+    quickCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+});
+</script>
+{% endblock %}

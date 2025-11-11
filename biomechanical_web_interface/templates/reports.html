@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes - BioTrack{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}" class="text-biomech-cyan">Dashboard</a></li>
+            <li class="breadcrumb-item active">Mis Reportes</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="biomech-glass p-4">
+                <h2 class="text-biomech-cyan mb-2">
+                    <i class="bi bi-file-earmark-text"></i> Mis Reportes
+                </h2>
+                <p class="text-muted">
+                    Historial completo de análisis por ejercicio y segmento corporal
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reportes por Segmento -->
+    {% if analyses_by_segment %}
+        {% for segment, exercises in analyses_by_segment.items() %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="biomech-glass">
+                    <div class="p-4">
+                        <h3 class="text-biomech-green mb-3">
+                            <i class="bi bi-diagram-3"></i> {{ segment|title }}
+                            <span class="badge bg-info ms-2">{{ exercises|length }} ejercicio(s)</span>
+                        </h3>
+                        
+                        {% for exercise, analyses in exercises.items() %}
+                        <div class="exercise-group mb-4">
+                            <h4 class="text-light mb-3">
+                                <i class="bi bi-arrow-right-circle"></i> {{ exercise|title }}
+                                <span class="badge bg-secondary ms-2">{{ analyses|length }} sesión(es)</span>
+                            </h4>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>ROM Máximo</th>
+                                            <th>Lado</th>
+                                            <th>Clasificación</th>
+                                            <th>Duración</th>
+                                            <th>Calidad</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for analysis in analyses %}
+                                        <tr>
+                                            <td>
+                                                <small class="text-info">
+                                                    {{ analysis.created_at.strftime('%d/%m/%Y %H:%M') }}
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <strong class="text-biomech-cyan">
+                                                    {{ "%.1f°"|format(analysis.max_rom_achieved or analysis.max_angle or 0) }}
+                                                </strong>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-primary">
+                                                    {{ analysis.max_rom_side or 'N/A' }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% set classification = analysis.rom_classification or 'unknown' %}
+                                                {% if classification == 'normal' %}
+                                                    <span class="badge bg-success">Normal</span>
+                                                {% elif classification == 'limited' %}
+                                                    <span class="badge bg-warning">Limitado</span>
+                                                {% elif classification == 'restricted' %}
+                                                    <span class="badge bg-danger">Restringido</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{{ classification|title }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    {{ analysis.duration_seconds or 0 }}s
+                                                </small>
+                                            </td>
+                                            <td>
+                                                {% set quality = analysis.quality_score or 0 %}
+                                                {% if quality >= 80 %}
+                                                    <span class="badge bg-success">Excelente</span>
+                                                {% elif quality >= 60 %}
+                                                    <span class="badge bg-info">Bueno</span>
+                                                {% elif quality >= 40 %}
+                                                    <span class="badge bg-warning">Regular</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Bajo</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <!-- Sin datos -->
+        <div class="row">
+            <div class="col-12">
+                <div class="biomech-glass p-5 text-center">
+                    <i class="bi bi-clipboard-data text-muted" style="font-size: 4rem;"></i>
+                    <h3 class="text-muted mt-3">Sin reportes disponibles</h3>
+                    <p class="text-muted">
+                        Realiza algunos análisis para ver tus reportes aquí.
+                    </p>
+                    <a href="{{ url_for('exercises') }}" class="biomech-button mt-3">
+                        <i class="bi bi-play-circle"></i> Comenzar Análisis
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

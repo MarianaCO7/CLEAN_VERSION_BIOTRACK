@@ -1,0 +1,784 @@
+{% extends "base.html" %}
+
+{% block title %}Perfil de Usuario - BioMech Analyzer{% endblock %}
+
+{% block extra_head %}
+<style>
+.profile-header {
+    background: linear-gradient(135deg, var(--biomech-purple), var(--biomech-cyan));
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(50%, -50%);
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--biomech-cyan), var(--biomech-green));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: white;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    position: relative;
+    z-index: 2;
+}
+
+.stat-ring {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: conic-gradient(var(--biomech-cyan) var(--progress, 0%), transparent 0%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.stat-ring::before {
+    content: '';
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--biomech-dark-2);
+    position: absolute;
+}
+
+.stat-value {
+    position: relative;
+    z-index: 1;
+    font-weight: 700;
+    color: var(--biomech-cyan);
+}
+
+.achievement-badge {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--biomech-green), var(--biomech-cyan));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.achievement-badge:hover {
+    transform: scale(1.1);
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+}
+
+/* 🆕 Iconos mini de articulaciones */
+.joint-mini-icon {
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 2px 4px rgba(0, 212, 255, 0.3));
+}
+
+.joint-mini-icon:hover {
+    opacity: 1 !important;
+    transform: scale(1.15);
+    filter: drop-shadow(0 4px 8px rgba(0, 212, 255, 0.5));
+}
+
+.activity-item {
+    background: rgba(30, 41, 59, 0.3);
+    border-left: 3px solid var(--biomech-cyan);
+    border-radius: 0 8px 8px 0;
+    transition: all 0.3s ease;
+}
+
+.activity-item:hover {
+    background: rgba(30, 41, 59, 0.6);
+    transform: translateX(5px);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}" class="text-biomech-cyan">Dashboard</a></li>
+            <li class="breadcrumb-item active">Mi Perfil</li>
+        </ol>
+    </nav>
+
+    <!-- Header del Perfil -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="profile-header p-5 text-white">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="profile-avatar">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <h2 class="mb-2">{{ session.username or 'Usuario' }}</h2>
+                        <p class="mb-3 opacity-75">
+                            <i class="bi bi-shield-check me-2"></i>{{ session.role|title or 'Estudiante' }}
+                            <span class="mx-3">|</span>
+                            <i class="bi bi-calendar me-2"></i>Miembro desde Septiembre 2025
+                        </p>
+                        <div class="d-flex gap-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-graph-up me-2"></i>
+                                <span id="total-analyses">{{ user_stats.total_analyses or 0 }}</span>
+                                <small class="ms-1 opacity-75">análisis</small>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-trophy me-2"></i>
+                                <span id="achievements-count">{{ user_stats.achievements or 3 }}</span>
+                                <small class="ms-1 opacity-75">logros</small>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-clock me-2"></i>
+                                <span id="total-time">{{ user_stats.total_time or '2.5' }}h</span>
+                                <small class="ms-1 opacity-75">total</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto text-end">
+                        <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                            <i class="bi bi-pencil-square"></i> Editar Perfil
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Estadísticas Detalladas -->
+        <div class="col-lg-8">
+            <!-- Análisis por Articulación -->
+            <div class="biomech-glass p-4 mb-4">
+                <h4 class="text-biomech-cyan mb-4">
+                    <i class="bi bi-bar-chart"></i> Análisis por Articulación
+                </h4>
+                
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="row g-3">
+                            <!-- Hombro -->
+                            <div class="col-6 text-center">
+                                <div class="stat-ring mx-auto mb-2" style="--progress: {{ user_stats.shoulder_percentage or 0 }}%;">
+                                    <div class="stat-value">{{ user_stats.shoulder_analyses or 0 }}</div>
+                                </div>
+                                <h6 class="text-light">Hombro</h6>
+                                <img src="{{ url_for('static', filename='images/joints/shoulder_1.png') }}" 
+                                     alt="Hombro" 
+                                     class="joint-mini-icon mb-1"
+                                     style="width: 32px; height: 32px; opacity: 0.7;">
+                                <small class="text-muted d-block">{{ user_stats.shoulder_percentage or 0 }}% completado</small>
+                            </div>
+                            
+                            <!-- Codo -->
+                            <div class="col-6 text-center">
+                                <div class="stat-ring mx-auto mb-2" style="--progress: {{ user_stats.elbow_percentage or 0 }}%;">
+                                    <div class="stat-value">{{ user_stats.elbow_analyses or 0 }}</div>
+                                </div>
+                                <h6 class="text-light">Codo</h6>
+                                <img src="{{ url_for('static', filename='images/joints/elbow_1.png') }}" 
+                                     alt="Codo" 
+                                     class="joint-mini-icon mb-1"
+                                     style="width: 32px; height: 32px; opacity: 0.7;">
+                                <small class="text-muted d-block">{{ user_stats.elbow_percentage or 0 }}% completado</small>
+                            </div>
+                            
+                            <!-- Cadera -->
+                            <div class="col-6 text-center">
+                                <div class="stat-ring mx-auto mb-2" style="--progress: {{ user_stats.hip_percentage or 0 }}%;">
+                                    <div class="stat-value">{{ user_stats.hip_analyses or 0 }}</div>
+                                </div>
+                                <h6 class="text-light">Cadera</h6>
+                                <img src="{{ url_for('static', filename='images/joints/hips_1.png') }}" 
+                                     alt="Cadera" 
+                                     class="joint-mini-icon mb-1"
+                                     style="width: 32px; height: 32px; opacity: 0.7;">
+                                <small class="text-muted d-block">{{ user_stats.hip_percentage or 0 }}% completado</small>
+                            </div>
+                            
+                            <!-- Rodilla -->
+                            <div class="col-6 text-center">
+                                <div class="stat-ring mx-auto mb-2" style="--progress: {{ user_stats.knee_percentage or 0 }}%;">
+                                    <div class="stat-value">{{ user_stats.knee_analyses or 0 }}</div>
+                                </div>
+                                <h6 class="text-light">Rodilla</h6>
+                                <img src="{{ url_for('static', filename='images/joints/knee_1.png') }}" 
+                                     alt="Rodilla" 
+                                     class="joint-mini-icon mb-1"
+                                     style="width: 32px; height: 32px; opacity: 0.7;">
+                                <small class="text-muted d-block">{{ user_stats.knee_percentage or 0 }}% completado</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="row g-3">
+                            <!-- Tobillo -->
+                            <div class="col-6 text-center">
+                                <div class="stat-ring mx-auto mb-2" style="--progress: {{ user_stats.ankle_percentage or 0 }}%;">
+                                    <div class="stat-value">{{ user_stats.ankle_analyses or 0 }}</div>
+                                </div>
+                                <h6 class="text-light">Tobillo</h6>
+                                <img src="{{ url_for('static', filename='images/joints/ankle_1.png') }}" 
+                                     alt="Tobillo" 
+                                     class="joint-mini-icon mb-1"
+                                     style="width: 32px; height: 32px; opacity: 0.7;">
+                                <small class="text-muted d-block">{{ user_stats.ankle_percentage or 0 }}% completado</small>
+                            </div>
+                            
+                            <!-- Cuello - OCULTO (no implementado) -->
+                            <div class="col-6 text-center" style="display: none;">
+                                <div class="stat-ring mx-auto mb-2" style="--progress: 0%;">
+                                    <div class="stat-value">0</div>
+                                </div>
+                                <h6 class="text-light">Cuello</h6>
+                                <small class="text-muted">0% completado</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Progreso General - DATOS REALES -->
+                        <div class="mt-4 p-3 bg-info bg-opacity-10 rounded">
+                            <h6 class="text-info mb-2">
+                                <i class="bi bi-target"></i> Progreso General
+                            </h6>
+                            <div class="progress mb-2" style="height: 10px;">
+                                <div class="progress-bar bg-gradient" style="width: {{ user_stats.overall_progress or 0 }}%"></div>
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>{{ user_stats.unique_exercises or 0 }} / {{ user_stats.total_possible_exercises or 15 }} ejercicios completados</span>
+                                <span>{{ user_stats.overall_progress or 0 }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actividad Reciente - DATOS REALES DINÁMICOS -->
+            <div class="biomech-glass p-4">
+                <h4 class="text-biomech-green mb-4">
+                    <i class="bi bi-clock-history"></i> Actividad Reciente
+                </h4>
+                
+                <div class="timeline">
+                    {% if user_stats.recent_activity and user_stats.recent_activity|length > 0 %}
+                        {% for activity in user_stats.recent_activity %}
+                        <div class="activity-item p-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="text-light mb-1">
+                                        <!-- 📊 ICONOS DINÁMICOS POR SEGMENTO -->
+                                        {% if activity.joint_type == 'shoulder' %}
+                                            <i class="bi bi-check-circle-fill text-info me-2"></i>
+                                        {% elif activity.joint_type == 'elbow' %}
+                                            <i class="bi bi-check-circle-fill text-warning me-2"></i>
+                                        {% elif activity.joint_type == 'hip' %}
+                                            <i class="bi bi-check-circle-fill text-purple me-2" style="color: #6B46C1;"></i>
+                                        {% elif activity.joint_type == 'knee' %}
+                                            <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                        {% elif activity.joint_type == 'ankle' %}
+                                            <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                        {% else %}
+                                            <i class="bi bi-check-circle-fill text-info me-2"></i>
+                                        {% endif %}
+                                        
+                                        <!-- 🏷️ NOMBRE DINÁMICO DEL EJERCICIO -->
+                                        {{ activity.exercise_name or (activity.joint_type|title + ' - ' + activity.exercise_type|title) }}
+                                    </h6>
+                                    
+                                    <!-- 📐 DETALLES DEL ANÁLISIS -->
+                                    <p class="text-muted small mb-2">
+                                        {% if activity.rom > 0 %}
+                                            ROM máximo: {{ activity.rom|round(1) }}° 
+                                        {% else %}
+                                            Análisis completado
+                                        {% endif %}
+                                        {% if activity.duration > 0 %}
+                                            - Duración: {{ (activity.duration // 60)|int }}:{{ '%02d'|format(activity.duration % 60) }}
+                                        {% endif %}
+                                    </p>
+                                    
+                                    <!-- 🎯 CLASIFICACIÓN ROM CON COLORES -->
+                                    {% if activity.classification == 'excellent' %}
+                                        <span class="badge bg-success">Excelente</span>
+                                    {% elif activity.classification == 'good' %}
+                                        <span class="badge bg-primary">Bueno</span>
+                                    {% elif activity.classification == 'needs_work' %}
+                                        <span class="badge bg-warning">Necesita práctica</span>
+                                    {% elif activity.classification == 'limited' %}
+                                        <span class="badge bg-danger">ROM limitado</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Completado</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- ⏰ TIEMPO TRANSCURRIDO REAL -->
+                                <small class="text-muted">{{ activity.time_ago }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <!-- 📭 ESTADO VACÍO (sin análisis previos) -->
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox" style="font-size: 3rem; color: #6B7280;"></i>
+                            <p class="text-muted mt-3">Aún no has realizado ningún análisis</p>
+                            <a href="{{ url_for('exercises') }}" class="btn btn-outline-info mt-2">
+                                <i class="bi bi-play-circle"></i> Iniciar primer análisis
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                {% if user_stats.recent_activity and user_stats.recent_activity|length >= 5 %}
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('reports') }}" class="btn btn-outline-info">
+                        <i class="bi bi-file-earmark-text"></i> Ver historial completo
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Panel Lateral -->
+        <div class="col-lg-4">
+            <!-- Logros y Badges -->
+            <div class="biomech-glass p-4 mb-4">
+                <h5 class="text-biomech-purple mb-4">
+                    <i class="bi bi-award"></i> Logros Desbloqueados
+                </h5>
+                
+                <div class="row g-3 text-center">
+                    <!-- 🏅 LOGRO 1: Primer Análisis (total >= 1) -->
+                    <div class="col-4">
+                        {% if 'first_analysis' in user_stats.achievements_details %}
+                        <div class="achievement-badge mx-auto mb-2" 
+                             title="Primer Análisis - Completa tu primer análisis ✓ DESBLOQUEADO"
+                             style="background: linear-gradient(135deg, #10B981, #059669);">
+                            <i class="bi bi-trophy-fill"></i>
+                        </div>
+                        <small class="text-success d-block fw-bold">Primer Análisis</small>
+                        {% else %}
+                        <div class="achievement-badge mx-auto mb-2 opacity-50" 
+                             title="Primer Análisis - Completa tu primer análisis ({{ user_stats.total_analyses or 0 }}/1)"
+                             style="background: #6B7280; filter: grayscale(100%);">
+                            <i class="bi bi-trophy-fill"></i>
+                        </div>
+                        <small class="text-muted d-block">Primer Análisis</small>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- 📈 LOGRO 2: Analista Dedicado (hombro >= 10) -->
+                    <div class="col-4">
+                        {% if 'dedicated_analyst' in user_stats.achievements_details %}
+                        <div class="achievement-badge mx-auto mb-2" 
+                             title="Analista Dedicado - Completa 10 análisis de hombro ✓ DESBLOQUEADO"
+                             style="background: linear-gradient(135deg, var(--biomech-purple), var(--biomech-cyan));">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                        <small class="text-info d-block fw-bold">Analista Dedicado</small>
+                        {% else %}
+                        <div class="achievement-badge mx-auto mb-2 opacity-50" 
+                             title="Analista Dedicado - Completa 10 análisis de hombro ({{ user_stats.shoulder_analyses or 0 }}/10)"
+                             style="background: #6B7280; filter: grayscale(100%);">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                        <small class="text-muted d-block">Analista Dedicado</small>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- 🌎 LOGRO 3: Explorador (3+ segmentos diferentes) -->
+                    <div class="col-4">
+                        {% if 'explorer' in user_stats.achievements_details %}
+                        <div class="achievement-badge mx-auto mb-2" 
+                             title="Explorador - Prueba 3 articulaciones diferentes ✓ DESBLOQUEADO"
+                             style="background: linear-gradient(135deg, #F59E0B, #D97706);">
+                            <i class="bi bi-globe-americas"></i>
+                        </div>
+                        <small class="text-warning d-block fw-bold">Explorador</small>
+                        {% else %}
+                        <div class="achievement-badge mx-auto mb-2 opacity-50" 
+                             title="Explorador - Prueba 3 articulaciones diferentes ({{ user_stats.unique_segments or 0 }}/3)"
+                             style="background: #6B7280; filter: grayscale(100%);">
+                            <i class="bi bi-globe-americas"></i>
+                        </div>
+                        <small class="text-muted d-block">Explorador</small>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- ⭐ LOGRO 4: Maestro (total >= 50) -->
+                    <div class="col-4">
+                        {% if 'master' in user_stats.achievements_details %}
+                        <div class="achievement-badge mx-auto mb-2" 
+                             title="Maestro - Alcanza 50 análisis totales ✓ DESBLOQUEADO"
+                             style="background: linear-gradient(135deg, #FFD700, #FFA500);">
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <small class="text-warning d-block fw-bold">Maestro</small>
+                        {% else %}
+                        <div class="achievement-badge mx-auto mb-2 opacity-50" 
+                             title="Maestro - Alcanza 50 análisis totales ({{ user_stats.total_analyses or 0 }}/50)"
+                             style="background: #6B7280; filter: grayscale(100%);">
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <small class="text-muted d-block">Maestro</small>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- 💎 LOGRO 5: Perfeccionista (20+ excelentes) -->
+                    <div class="col-4">
+                        {% if 'perfectionist' in user_stats.achievements_details %}
+                        <div class="achievement-badge mx-auto mb-2" 
+                             title="Perfeccionista - Obtén 'Excelente' en 20 análisis ✓ DESBLOQUEADO"
+                             style="background: linear-gradient(135deg, #8B5CF6, #7C3AED);">
+                            <i class="bi bi-gem"></i>
+                        </div>
+                        <small class="text-purple d-block fw-bold" style="color: #8B5CF6;">Perfeccionista</small>
+                        {% else %}
+                        <div class="achievement-badge mx-auto mb-2 opacity-50" 
+                             title="Perfeccionista - Obtén 'Excelente' en 20 análisis ({{ user_stats.excellent_count or 0 }}/20)"
+                             style="background: #6B7280; filter: grayscale(100%);">
+                            <i class="bi bi-gem"></i>
+                        </div>
+                        <small class="text-muted d-block">Perfeccionista</small>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- 👑 LOGRO 6: Leyenda (total >= 100) -->
+                    <div class="col-4">
+                        {% if 'legend' in user_stats.achievements_details %}
+                        <div class="achievement-badge mx-auto mb-2" 
+                             title="Leyenda - Completa 100 análisis totales ✓ DESBLOQUEADO"
+                             style="background: linear-gradient(135deg, #FF1493, #DC143C);">
+                            <i class="bi bi-crown-fill"></i>
+                        </div>
+                        <small class="text-danger d-block fw-bold">Leyenda</small>
+                        {% else %}
+                        <div class="achievement-badge mx-auto mb-2 opacity-50" 
+                             title="Leyenda - Completa 100 análisis totales ({{ user_stats.total_analyses or 0 }}/100)"
+                             style="background: #6B7280; filter: grayscale(100%);">
+                            <i class="bi bi-crown-fill"></i>
+                        </div>
+                        <small class="text-muted d-block">Leyenda</small>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- 📊 CONTADOR DINÁMICO DE LOGROS -->
+                <div class="text-center mt-3">
+                    <small class="text-info">
+                        <i class="bi bi-trophy"></i> 
+                        {{ user_stats.achievements or 0 }} de 6 logros desbloqueados
+                    </small>
+                </div>
+            </div>
+
+            <!-- Configuración Rápida -->
+            <div class="biomech-glass p-4 mb-4" style="display: none;">
+                <h5 class="text-biomech-cyan mb-3">
+                    <i class="bi bi-gear"></i> Configuración Rápida
+                </h5>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-light">Notificaciones</span>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" checked>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-light">Sonidos</span>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" checked>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-light">Análisis automático</span>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox">
+                    </div>
+                </div>
+                
+                <hr class="border-secondary">
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted">Calidad de video</label>
+                    <select class="form-select bg-dark text-light border-secondary">
+                        <option>Alta (720p)</option>
+                        <option selected>Media (480p)</option>
+                        <option>Baja (360p)</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-outline-danger w-100">
+                    <i class="bi bi-arrow-clockwise"></i> Resetear Preferencias
+                </button>
+            </div>
+
+            <!-- Próximo Objetivo -->
+            <div class="biomech-glass p-4">
+                <h5 class="text-biomech-green mb-3">
+                    <i class="bi bi-bullseye"></i> Próximo Objetivo
+                </h5>
+                
+                <div class="text-center">
+                    <div class="achievement-badge mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                        <i class="bi bi-trophy"></i>
+                    </div>
+                    <h6 class="text-light">Maestro del Movimiento</h6>
+                    <p class="text-muted small mb-3">
+                        Completa 50 análisis en total para desbloquear este logro
+                    </p>
+                    
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div class="progress-bar bg-gradient" style="width: 70%"></div>
+                    </div>
+                    <small class="text-info">35 / 50 análisis completados</small>
+                    
+                    <div class="mt-3">
+                        <a href="{{ url_for('exercises') }}" class="biomech-button w-100">
+                            <i class="bi bi-rocket-takeoff"></i> Continuar Progreso
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Edición de Perfil -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border-0">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-biomech-cyan">
+                    <i class="bi bi-person-gear"></i> Editar Perfil
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProfileForm">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre de usuario</label>
+                        <input type="text" class="form-control bg-transparent border-secondary text-light" 
+                               value="{{ user.username }}" readonly>
+                        <div class="form-text text-muted">El nombre de usuario no se puede cambiar</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="profileEmail" class="form-control bg-transparent border-secondary text-light" 
+                               placeholder="tu.email@ejemplo.com" value="{{ user.email or '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Nombre completo</label>
+                        <input type="text" id="profileFullName" class="form-control bg-transparent border-secondary text-light" 
+                               placeholder="Tu nombre completo" value="{{ user.full_name or '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Bio</label>
+                        <textarea id="profileBio" class="form-control bg-transparent border-secondary text-light" 
+                                  rows="3" placeholder="Cuéntanos sobre ti...">{{ user.bio or '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Especialización</label>
+                        <select id="profileSpecialization" class="form-select bg-dark text-light border-secondary">
+                            <option value="">Selecciona una opción</option>
+                            <option value="Estudiante" {% if user.specialization == 'Estudiante' %}selected{% endif %}>Estudiante</option>
+                            <option value="Fisioterapeuta" {% if user.specialization == 'Fisioterapeuta' %}selected{% endif %}>Fisioterapeuta</option>
+                            <option value="Médico Deportivo" {% if user.specialization == 'Médico Deportivo' %}selected{% endif %}>Médico Deportivo</option>
+                            <option value="Investigador" {% if user.specialization == 'Investigador' %}selected{% endif %}>Investigador</option>
+                            <option value="Otro" {% if user.specialization == 'Otro' %}selected{% endif %}>Otro</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="biomech-button" id="saveProfileBtn">
+                    <i class="bi bi-check-lg"></i> Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Animaciones de anillos de estadísticas
+document.addEventListener('DOMContentLoaded', function() {
+    const statRings = document.querySelectorAll('.stat-ring');
+    
+    // Animate stat rings
+    statRings.forEach((ring, index) => {
+        setTimeout(() => {
+            const progress = ring.style.getPropertyValue('--progress');
+            ring.style.setProperty('--progress', '0%');
+            
+            setTimeout(() => {
+                ring.style.transition = 'all 1s ease-out';
+                ring.style.setProperty('--progress', progress);
+            }, 100);
+        }, index * 200);
+    });
+    
+    // Hover effects para achievements
+    const badges = document.querySelectorAll('.achievement-badge');
+    badges.forEach(badge => {
+        badge.addEventListener('mouseenter', function() {
+            if (!this.classList.contains('opacity-50')) {
+                this.style.transform = 'scale(1.1) rotate(5deg)';
+            }
+        });
+        
+        badge.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1) rotate(0deg)';
+        });
+    });
+    
+    // Actualizar configuración
+    const switches = document.querySelectorAll('.form-check-input');
+    switches.forEach(switchEl => {
+        switchEl.addEventListener('change', function() {
+            const setting = this.closest('.d-flex').querySelector('span').textContent;
+            const status = this.checked ? 'activado' : 'desactivado';
+            
+            // Simulamos guardar configuración
+            console.log(`Configuración "${setting}": ${status}`);
+            
+            // Mostrar notificación temporal
+            showNotification(`Configuración actualizada: ${setting} ${status}`, 'info');
+        });
+    });
+});
+
+// Función para mostrar notificaciones
+function showNotification(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `position-fixed top-0 end-0 m-3 alert alert-${type} alert-dismissible`;
+    toast.style.zIndex = '9999';
+    toast.innerHTML = `
+        <i class="bi bi-info-circle"></i> ${message}
+        <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.remove();
+        }
+    }, 4000);
+}
+
+// Simular actualización en tiempo real de estadísticas
+setInterval(() => {
+    const totalAnalyses = document.getElementById('total-analyses');
+    if (totalAnalyses && Math.random() > 0.98) {
+        const current = parseInt(totalAnalyses.textContent) || 0;
+        totalAnalyses.textContent = current + 1;
+        
+        // Efecto de pulse
+        totalAnalyses.style.animation = 'pulse 0.5s';
+        setTimeout(() => {
+            totalAnalyses.style.animation = '';
+        }, 500);
+    }
+}, 2000);
+
+// Función para resetear preferencias
+document.querySelector('button[onclick*="Resetear"]')?.addEventListener('click', function() {
+    if (confirm('¿Estás seguro de que quieres resetear todas tus preferencias?')) {
+        // Resetear switches
+        document.querySelectorAll('.form-check-input').forEach(input => {
+            input.checked = input.getAttribute('checked') === 'checked';
+        });
+        
+        // Resetear select
+        document.querySelector('select').selectedIndex = 1;
+        
+        showNotification('Preferencias restablecidas a valores por defecto', 'success');
+    }
+});
+
+// 💾 GUARDAR CAMBIOS DEL PERFIL
+document.getElementById('saveProfileBtn')?.addEventListener('click', async function() {
+    const btn = this;
+    const originalHtml = btn.innerHTML;
+    
+    try {
+        // Deshabilitar botón y mostrar loading
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+        
+        // Recopilar datos del formulario
+        const data = {
+            email: document.getElementById('profileEmail').value.trim(),
+            full_name: document.getElementById('profileFullName').value.trim(),
+            bio: document.getElementById('profileBio').value.trim(),
+            specialization: document.getElementById('profileSpecialization').value
+        };
+        
+        // Enviar petición al backend
+        const response = await fetch('/update_profile', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Mostrar notificación de éxito
+            showNotification('✅ Perfil actualizado correctamente', 'success');
+            
+            // Cerrar modal después de 800ms
+            setTimeout(() => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editProfileModal'));
+                if (modal) modal.hide();
+            }, 800);
+            
+            // Recargar página después de 1 segundo para mostrar datos actualizados
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showNotification('❌ Error: ' + result.message, 'danger');
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+        
+    } catch (error) {
+        console.error('Error guardando perfil:', error);
+        showNotification('❌ Error de conexión. Intenta nuevamente.', 'danger');
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+    }
+});
+</script>
+{% endblock %}

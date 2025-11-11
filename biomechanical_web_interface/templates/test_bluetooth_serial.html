@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Serial API + Bluetooth ESP32</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #00d4ff, #6b46c1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            flex: 1;
+            min-width: 120px;
+            padding: 15px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-connect {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+        }
+        .btn-disconnect {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        .btn-command {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        .btn-status {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        #log {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-top: 20px;
+        }
+        .log-success { color: #10b981; }
+        .log-error { color: #ef4444; }
+        .log-info { color: #00d4ff; }
+        .log-warning { color: #f59e0b; }
+        .status-bar {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .status-disconnected { color: #ef4444; }
+        .status-connected { color: #10b981; }
+        .instructions {
+            background: rgba(0, 212, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        .instructions ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        .instructions li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪Web Serial API + ESP32 Bluetooth</h1>
+        
+        <div class="instructions">
+            <strong>📋 Pasos antes de probar:</strong>
+            <ol>
+                <li>Sube CODIGO_ESP32_BIOTRACK.ino al ESP32 (con USB)</li>
+                <li>Desconecta USB, conecta batería</li>
+                <li>Windows → Bluetooth → Emparejar "BIOMECH-ESP32"</li>
+                <li>Propiedades → Servicios → ☑ Serial Port → Agregar puerto COM saliente</li>
+                <li>Anota el número de puerto (ej: COM8)</li>
+                <li>Click "🔗 Conectar" y selecciona ese puerto</li>
+            </ol>
+        </div>
+
+        <div class="status-bar" id="status">
+            <span id="status-text" class="status-disconnected">❌ Desconectado</span>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-connect" onclick="connect()" id="btn-connect">
+                🔗 Conectar ESP32
+            </button>
+            <button class="btn-disconnect" onclick="disconnect()" id="btn-disconnect" disabled>
+                ❌ Desconectar
+            </button>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-command" onclick="sendCommand('L')" id="btn-left" disabled>
+                ⬅️ Pan Izquierda
+            </button>
+            <button class="btn-command" onclick="sendCommand('C')" id="btn-center" disabled>
+                🎯 Pan Centro
+            </button>
+            <button class="btn-command" onclick="sendCommand('R')" id="btn-right" disabled>
+                ➡️ Pan Derecha
+            </button>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-status" onclick="sendCommand('S')" id="btn-status" disabled>
+                📊 Status
+            </button>
+        </div>
+
+        <div id="log"></div>
+    </div>
+
+    <script>
+        let port = null;
+        let reader = null;
+        let writer = null;
+        let isConnected = false;
+        let readLoop = null;
+
+        // ============================================================================
+        // LOGGING
+        // ============================================================================
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = `log-${type}`;
+            logDiv.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function updateStatus(connected) {
+            const statusText = document.getElementById('status-text');
+            const btnConnect = document.getElementById('btn-connect');
+            const btnDisconnect = document.getElementById('btn-disconnect');
+            const btnLeft = document.getElementById('btn-left');
+            const btnCenter = document.getElementById('btn-center');
+            const btnRight = document.getElementById('btn-right');
+            const btnStatus = document.getElementById('btn-status');
+
+            isConnected = connected;
+
+            if (connected) {
+                statusText.textContent = '✅ Conectado a ESP32';
+                statusText.className = 'status-connected';
+                btnConnect.disabled = true;
+                btnDisconnect.disabled = false;
+                btnLeft.disabled = false;
+                btnCenter.disabled = false;
+                btnRight.disabled = false;
+                btnStatus.disabled = false;
+            } else {
+                statusText.textContent = '❌ Desconectado';
+                statusText.className = 'status-disconnected';
+                btnConnect.disabled = false;
+                btnDisconnect.disabled = true;
+                btnLeft.disabled = true;
+                btnCenter.disabled = true;
+                btnRight.disabled = true;
+                btnStatus.disabled = true;
+            }
+        }
+
+        // ============================================================================
+        // WEB SERIAL API
+        // ============================================================================
+        async function connect() {
+            try {
+                // Verificar compatibilidad
+                if (!('serial' in navigator)) {
+                    log('❌ Web Serial API no disponible en este navegador', 'error');
+                    log('⚠️ Requiere Chrome/Edge 89+', 'warning');
+                    alert('Web Serial API no está disponible.\n\nUsa Chrome o Edge actualizado.');
+                    return;
+                }
+
+                log('🔍 Solicitando puerto serial...', 'info');
+                log('⚠️ En la ventana que aparece, selecciona el puerto COM del ESP32 Bluetooth (ej: COM8)', 'warning');
+
+                // Solicitar puerto al usuario
+                port = await navigator.serial.requestPort();
+                
+                log('✅ Puerto seleccionado', 'success');
+                log('🔧 Abriendo conexión serial (115200 baud)...', 'info');
+
+                // Abrir conexión serial
+                await port.open({ 
+                    baudRate: 115200,
+                    dataBits: 8,
+                    stopBits: 1,
+                    parity: 'none'
+                });
+
+                log('✅ Puerto abierto exitosamente', 'success');
+
+                // Obtener writer para enviar datos
+                writer = port.writable.getWriter();
+                log('✅ Writer configurado', 'success');
+
+                // Iniciar lectura de datos
+                startReading();
+
+                updateStatus(true);
+                log('🎉 ¡Conexión establecida! Puedes enviar comandos.', 'success');
+
+            } catch (error) {
+                log(`❌ Error al conectar: ${error.message}`, 'error');
+                
+                if (error.name === 'NotFoundError') {
+                    log('⚠️ No seleccionaste ningún puerto', 'warning');
+                } else if (error.name === 'InvalidStateError') {
+                    log('⚠️ El puerto ya está en uso o no está disponible', 'warning');
+                } else {
+                    log(`⚠️ Tipo de error: ${error.name}`, 'warning');
+                }
+                
+                console.error(error);
+            }
+        }
+
+        async function disconnect() {
+            try {
+                if (readLoop) {
+                    readLoop = false;
+                }
+
+                if (reader) {
+                    await reader.cancel();
+                    await reader.releaseLock();
+                    reader = null;
+                }
+
+                if (writer) {
+                    await writer.releaseLock();
+                    writer = null;
+                }
+
+                if (port) {
+                    await port.close();
+                    port = null;
+                }
+
+                updateStatus(false);
+                log('✅ Desconectado correctamente', 'success');
+
+            } catch (error) {
+                log(`❌ Error al desconectar: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        async function startReading() {
+            try {
+                reader = port.readable.getReader();
+                readLoop = true;
+
+                log('👂 Escuchando respuestas del ESP32...', 'info');
+
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (readLoop && port.readable) {
+                    try {
+                        const { value, done } = await reader.read();
+                        
+                        if (done) {
+                            log('⚠️ Lectura finalizada', 'warning');
+                            break;
+                        }
+
+                        const text = decoder.decode(value);
+                        buffer += text;
+
+                        // Procesar líneas completas
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop(); // Guardar línea incompleta
+
+                        for (const line of lines) {
+                            if (line.trim()) {
+                                log(`📨 ESP32: ${line.trim()}`, 'success');
+                            }
+                        }
+
+                    } catch (readError) {
+                        if (readError.name === 'NetworkError') {
+                            log('⚠️ Conexión perdida', 'warning');
+                        } else {
+                            log(`❌ Error de lectura: ${readError.message}`, 'error');
+                        }
+                        break;
+                    }
+                }
+
+                reader.releaseLock();
+
+            } catch (error) {
+                log(`❌ Error en lectura: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        async function sendCommand(command) {
+            if (!isConnected || !writer) {
+                log('❌ No conectado', 'error');
+                return;
+            }
+
+            try {
+                log(`📤 Enviando comando: '${command}'`, 'info');
+
+                const encoder = new TextEncoder();
+                await writer.write(encoder.encode(command));
+
+                log(`✅ Comando '${command}' enviado`, 'success');
+
+                // Descripción del comando
+                const descriptions = {
+                    'L': 'Pan -15° hacia izquierda (mín 0°)',
+                    'C': 'Pan Centro (90°)',
+                    'R': 'Pan +15° hacia derecha (máx 180°)',
+                    'S': 'Status del sistema'
+                };
+
+                if (descriptions[command]) {
+                    log(`ℹ️ Acción: ${descriptions[command]}`, 'info');
+                }
+
+            } catch (error) {
+                log(`❌ Error al enviar: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        // ============================================================================
+        // INICIALIZACIÓN
+        // ============================================================================
+        window.addEventListener('DOMContentLoaded', () => {
+            log('Web Serial API + Bluetooth', 'info');
+            log('Versión del navegador: ' + navigator.userAgent.split(' ').pop(), 'info');
+            
+            if ('serial' in navigator) {
+                log('✅ Web Serial API disponible', 'success');
+            } else {
+                log('❌ Web Serial API NO disponible', 'error');
+                log('⚠️ Usa Chrome 89+ o Edge 89+', 'warning');
+            }
+
+            log('', 'info');
+            log('📋 Instrucciones:', 'info');
+            log('1. Empareja el ESP32 por Bluetooth en Windows', 'info');
+            log('2. Crea el puerto COM en Propiedades del dispositivo', 'info');
+            log('3. Click "🔗 Conectar ESP32"', 'info');
+            log('4. Selecciona el puerto COM del ESP32', 'info');
+            log('5. Prueba los comandos', 'info');
+            log('', 'info');
+        });
+
+        // Manejar desconexión inesperada
+        window.addEventListener('beforeunload', () => {
+            if (isConnected) {
+                disconnect();
+            }
+        });
+
+        // 🔄 POLLING HTTP: Consultar comandos remotos cada 1 segundo
+        let pollingInterval = null;
+
+        function startPolling() {
+            if (pollingInterval) return; // Ya está ejecutándose
+            
+            pollingInterval = setInterval(async () => {
+                if (!isConnected) return; // Solo si ESP32 está conectado
+                
+                try {
+                    const response = await fetch('/api/esp32_command', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success && data.command) {
+                        log(`📱 Control remoto solicita: '${data.command}'`, 'info');
+                        sendCommand(data.command);
+                    }
+                } catch (error) {
+                    console.error('Error en polling:', error);
+                }
+            }, 1000); // Consultar cada 1 segundo
+            
+            log('🔄 Polling de comandos remotos iniciado', 'success');
+        }
+
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+                log('⏸️ Polling de comandos remotos detenido', 'info');
+            }
+        }
+
+        // Iniciar polling automáticamente al cargar la página
+        startPolling();
+
+        // Detener polling al desconectar
+        const originalDisconnect = disconnect;
+        disconnect = function() {
+            stopPolling();
+            originalDisconnect();
+        };
+    </script>
+</body>
+</html>

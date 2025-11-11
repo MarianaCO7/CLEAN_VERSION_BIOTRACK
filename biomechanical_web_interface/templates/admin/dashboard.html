@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de Administración - BioTrack{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header Admin -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="admin-header p-4">
+                <h1 class="text-white mb-2">
+                    <i class="bi bi-shield-check"></i> Panel de Administración
+                </h1>
+                <p class="text-light opacity-75">
+                    Centro de control del sistema BioTrack
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas Generales -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ stats.total_users }}</h3>
+                    <p>Usuarios Totales</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-success">
+                    <i class="bi bi-person-check"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ stats.active_users }}</h3>
+                    <p>Usuarios Activos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-warning">
+                    <i class="bi bi-person-dash"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ stats.inactive_users }}</h3>
+                    <p>Usuarios Inactivos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-info">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ stats.total_analyses }}</h3>
+                    <p>Análisis Totales</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones Principales -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="biomech-glass p-4">
+                <h3 class="text-biomech-cyan mb-3">
+                    <i class="bi bi-gear"></i> Acciones Principales
+                </h3>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <a href="{{ url_for('admin_users') }}" class="admin-action-card">
+                            <i class="bi bi-people-fill"></i>
+                            <h5>Gestionar Usuarios</h5>
+                            <p>Ver, crear, editar y administrar usuarios del sistema</p>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('admin_create_user') }}" class="admin-action-card">
+                            <i class="bi bi-person-plus-fill"></i>
+                            <h5>Crear Usuario</h5>
+                            <p>Agregar nuevo usuario al sistema</p>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="#" class="admin-action-card" onclick="alert('Próximamente')" style="display: none;">
+                            <i class="bi bi-clipboard-data"></i>
+                            <h5>Reportes Sistema</h5>
+                            <p>Estadísticas y reportes generales</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Usuarios Recientes y Actividad -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="biomech-glass p-4">
+                <h3 class="text-biomech-green mb-3">
+                    <i class="bi bi-clock-history"></i> Usuarios Recientes
+                </h3>
+                {% if stats.recent_users %}
+                    <div class="list-group list-group-flush">
+                        {% for user in stats.recent_users %}
+                        <div class="list-group-item bg-transparent border-secondary text-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ user.username }}</h6>
+                                    <small class="text-muted">{{ user.full_name or 'Sin nombre' }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-{{ 'success' if user.status == 'active' else 'secondary' }}">
+                                        {{ user.status|title }}
+                                    </span>
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ user.created_at.strftime('%d/%m/%Y') }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No hay usuarios recientes</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="biomech-glass p-4">
+                <h3 class="text-biomech-purple mb-3">
+                    <i class="bi bi-activity"></i> Actividad Reciente
+                </h3>
+                {% if stats.recent_logins %}
+                    <div class="list-group list-group-flush">
+                        {% for user in stats.recent_logins %}
+                        <div class="list-group-item bg-transparent border-secondary text-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ user.username }}</h6>
+                                    <small class="text-success">
+                                        <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
+                                        Último acceso
+                                    </small>
+                                </div>
+                                <small class="text-muted">
+                                    {{ user.last_login.strftime('%d/%m/%Y %H:%M') if user.last_login else 'Nunca' }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No hay actividad reciente</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.admin-header {
+    background: linear-gradient(135deg, var(--biomech-purple), var(--biomech-cyan));
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 150px;
+    height: 150px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(30%, -30%);
+}
+
+.stat-card {
+    background: var(--biomech-glass);
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid rgba(0, 212, 255, 0.1);
+    backdrop-filter: blur(10px);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.stat-content h3 {
+    color: var(--biomech-cyan);
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.stat-content p {
+    color: var(--biomech-text-secondary);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.admin-action-card {
+    display: block;
+    padding: 2rem;
+    background: var(--biomech-glass);
+    border-radius: 16px;
+    border: 1px solid rgba(0, 212, 255, 0.1);
+    backdrop-filter: blur(10px);
+    text-decoration: none;
+    color: var(--biomech-text-primary);
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.admin-action-card:hover {
+    border-color: var(--biomech-cyan);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+    color: var(--biomech-text-primary);
+}
+
+.admin-action-card i {
+    font-size: 2.5rem;
+    color: var(--biomech-cyan);
+    margin-bottom: 1rem;
+}
+
+.admin-action-card h5 {
+    color: var(--biomech-cyan);
+    margin-bottom: 0.5rem;
+}
+
+.admin-action-card p {
+    font-size: 0.9rem;
+    color: var(--biomech-text-secondary);
+    margin: 0;
+}
+</style>
+{% endblock %}

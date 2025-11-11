@@ -1,0 +1,454 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Resultados de {{ joint_config.name }} - BioTrack
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header con Progreso General -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="biomech-glass p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="segment-icon-large me-3">
+                            <i class="bi bi-{{ joint_config.icon }}"></i>
+                        </div>
+                        <div>
+                            <h1 class="mb-1">{{ joint_config.name }}</h1>
+                            <p class="text-light mb-0">Resultados de análisis biomecánico</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Badge de Progreso -->
+                    <div class="completion-badge">
+                        <div class="completion-circle">
+                            <span class="completion-percentage">{{ general_stats.completion_percentage }}%</span>
+                        </div>
+                        <p class="completion-text">Completado</p>
+                    </div>
+                </div>
+                
+                <!-- Estadísticas Generales -->
+                <div class="row text-center">
+                    <div class="col-3">
+                        <div class="stat-item">
+                            <h3 class="stat-number">{{ general_stats.completed_exercises }}</h3>
+                            <p class="stat-label">Ejercicios Completados</p>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="stat-item">
+                            <h3 class="stat-number">{{ general_stats.total_exercises }}</h3>
+                            <p class="stat-label">Total de Ejercicios</p>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="stat-item">
+                            <h3 class="stat-number">{{ general_stats.total_attempts }}</h3>
+                            <p class="stat-label">Intentos Totales</p>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="stat-item">
+                            <h3 class="stat-number">{{ available_exercises|length }}</h3>
+                            <p class="stat-label">Ejercicios Disponibles</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultados por Ejercicio -->
+    <div class="row">
+        <div class="col-12">
+            <h2 class="text-white mb-4">
+                <i class="bi bi-graph-up"></i>
+                Resultados por Ejercicio
+            </h2>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for exercise_name in available_exercises %}
+        {% set exercise_data = results_by_exercise[exercise_name] %}
+        {% set config = exercise_data.config %}
+        
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="exercise-results-card {% if not exercise_data.has_data %}no-data{% endif %}">
+                <!-- Header del Ejercicio -->
+                <div class="results-card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="exercise-name">{{ config.exercise_name if config else exercise_name.title() }}</h4>
+                            <p class="exercise-description">{{ config.description if config else 'Ejercicio de ' + joint_config.name.lower() }}</p>
+                        </div>
+                        
+                        <!-- Estado del Ejercicio -->
+                        {% if exercise_data.has_data %}
+                        <span class="status-badge completed">
+                            <i class="bi bi-check-circle"></i>
+                            Completado
+                        </span>
+                        {% else %}
+                        <span class="status-badge pending">
+                            <i class="bi bi-clock"></i>
+                            Pendiente
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Contenido del Ejercicio -->
+                <div class="results-card-body">
+                    {% if exercise_data.has_data %}
+                    <!-- Estadísticas del Ejercicio -->
+                    <div class="exercise-stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-value">{{ exercise_data.latest_angle }}°</div>
+                            <div class="stat-label">Último Resultado</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">{{ exercise_data.best_angle }}°</div>
+                            <div class="stat-label">Mejor Resultado</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">{{ exercise_data.average_angle }}°</div>
+                            <div class="stat-label">Promedio</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">{{ exercise_data.total_attempts }}</div>
+                            <div class="stat-label">Intentos</div>
+                        </div>
+                    </div>
+
+                    <!-- Evaluación del Rango -->
+                    {% if config and config.normal_range %}
+                    <div class="range-evaluation">
+                        <div class="range-bar">
+                            <div class="range-fill" style="width: {{ ((exercise_data.latest_angle / config.normal_range.max) * 100)|round(1) }}%"></div>
+                            <div class="range-marker" style="left: {{ ((exercise_data.latest_angle / config.normal_range.max) * 100)|round(1) }}%">
+                                <span>{{ exercise_data.latest_angle }}°</span>
+                            </div>
+                        </div>
+                        <div class="range-labels">
+                            <span>0°</span>
+                            <span>{{ config.normal_range.max }}°</span>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Último Análisis -->
+                    {% if exercise_data.latest_analysis %}
+                    <div class="latest-analysis">
+                        <h6><i class="bi bi-clock-history"></i> Último análisis:</h6>
+                        <p class="analysis-date">{{ exercise_data.latest_analysis.created_at.strftime('%d/%m/%Y a las %H:%M') }}</p>
+                        <p class="analysis-quality">
+                            <strong>Observación:</strong> 
+                            {{ (exercise_data.latest_analysis.rom_classification or 'desconocido')|motivational_comment }}
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    {% else %}
+                    <!-- Estado Sin Datos -->
+                    <div class="no-data-state">
+                        <div class="no-data-icon">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                        <p class="no-data-text">Aún no has realizado este ejercicio</p>
+                        <p class="no-data-description">{{ config.description if config else 'Completa este ejercicio para ver tus resultados' }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Acciones -->
+                <div class="results-card-footer">
+                    {% if exercise_data.has_data %}
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('analysis_with_exercise', joint_type=joint_type, exercise=exercise_name) }}" 
+                           class="btn btn-outline-primary flex-fill">
+                            <i class="bi bi-arrow-repeat"></i>
+                            Repetir
+                        </a>
+                        <button class="btn btn-outline-info" onclick="showHistory('{{ exercise_name }}')">
+                            <i class="bi bi-clock-history"></i>
+                            Historial
+                        </button>
+                    </div>
+                    {% else %}
+                    <a href="{{ url_for('analysis_with_exercise', joint_type=joint_type, exercise=exercise_name) }}" 
+                       class="btn btn-primary w-100">
+                        <i class="bi bi-play-fill"></i>
+                        Comenzar Ejercicio
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <div class="action-buttons">
+                <a href="{{ url_for('exercise_selector', joint_type=joint_type) }}" class="btn btn-primary btn-lg me-3">
+                    <i class="bi bi-plus-circle"></i>
+                    Realizar Más Ejercicios
+                </a>
+                <a href="{{ url_for('exercises') }}" class="btn btn-outline-light btn-lg">
+                    <i class="bi bi-arrow-left"></i>
+                    Volver a Ejercicios
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* 🎨 Estilos para Resultados Consolidados */
+.exercise-results-card {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    overflow: hidden;
+    height: 100%;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.exercise-results-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+.exercise-results-card.no-data {
+    opacity: 0.7;
+    border-style: dashed;
+}
+
+.results-card-header {
+    padding: 1.5rem 1.5rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.exercise-name {
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.exercise-description {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    margin-bottom: 0;
+}
+
+.status-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.status-badge.completed {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    color: white;
+}
+
+.status-badge.pending {
+    background: linear-gradient(45deg, #6c757d, #495057);
+    color: white;
+}
+
+.results-card-body {
+    padding: 1.5rem;
+}
+
+.exercise-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-box {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #00d4ff;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 0.3rem;
+    margin-bottom: 0;
+}
+
+.range-evaluation {
+    margin-bottom: 1.5rem;
+}
+
+.range-bar {
+    position: relative;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+.range-fill {
+    height: 100%;
+    background: linear-gradient(45deg, #00d4ff, #0099cc);
+    border-radius: 4px;
+    transition: width 0.6s ease;
+}
+
+.range-marker {
+    position: absolute;
+    top: -25px;
+    transform: translateX(-50%);
+    font-size: 0.8rem;
+    color: #00d4ff;
+    font-weight: 600;
+}
+
+.range-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.latest-analysis h6 {
+    color: #00d4ff;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.analysis-date, .analysis-quality {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
+}
+
+.no-data-state {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.no-data-icon i {
+    font-size: 3rem;
+    color: rgba(255, 255, 255, 0.3);
+    margin-bottom: 1rem;
+}
+
+.no-data-text {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.no-data-description {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    margin-bottom: 0;
+}
+
+.results-card-footer {
+    padding: 1rem 1.5rem 1.5rem;
+}
+
+.segment-icon-large {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(45deg, #00d4ff, #0099cc);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.segment-icon-large i {
+    font-size: 2rem;
+    color: white;
+}
+
+.completion-badge {
+    text-align: center;
+}
+
+.completion-circle {
+    width: 80px;
+    height: 80px;
+    border: 4px solid rgba(0, 212, 255, 0.3);
+    border-top: 4px solid #00d4ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.5rem;
+    position: relative;
+}
+
+.completion-percentage {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #00d4ff;
+}
+
+.completion-text {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.stat-item {
+    padding: 1rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-item:last-child {
+    border-right: none;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #00d4ff;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.action-buttons {
+    margin-top: 2rem;
+}
+</style>
+
+<script>
+function showHistory(exerciseName) {
+    // TODO: Implementar modal con historial completo
+    alert(`Mostrando historial de ${exerciseName}`);
+}
+</script>
+{% endblock %}

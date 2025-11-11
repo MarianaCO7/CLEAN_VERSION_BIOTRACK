@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Usuario - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}" class="text-biomech-cyan">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_users') }}" class="text-biomech-cyan">Usuarios</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_user_detail', user_id=user.id) }}" class="text-biomech-cyan">{{ user.username }}</a></li>
+            <li class="breadcrumb-item active">Editar</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-white mb-2">
+                <i class="bi bi-pencil"></i> Editar Usuario
+            </h2>
+            <p class="text-biomech-text-secondary mb-0">
+                Modificar información de <strong class="text-biomech-cyan">{{ user.username }}</strong>
+            </p>
+        </div>
+        <a href="{{ url_for('admin_user_detail', user_id=user.id) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <!-- Formulario de Edición -->
+    <form method="POST" id="editUserForm">
+        <div class="row">
+            <!-- Información Básica -->
+            <div class="col-lg-6">
+                <div class="biomech-glass p-4 mb-4">
+                    <h4 class="text-biomech-cyan mb-3">
+                        <i class="bi bi-person"></i> Información Básica
+                    </h4>
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">
+                            Nombre de Usuario <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="username" name="username" 
+                               class="form-control bg-transparent border-secondary text-light" 
+                               value="{{ user.username }}" required>
+                        <div class="form-text text-muted">Solo letras, números y guiones bajos</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label">Nombre Completo</label>
+                        <input type="text" id="full_name" name="full_name" 
+                               class="form-control bg-transparent border-secondary text-light" 
+                               value="{{ user.full_name or '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" id="email" name="email" 
+                               class="form-control bg-transparent border-secondary text-light" 
+                               value="{{ user.email or '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Teléfono</label>
+                        <input type="tel" id="phone" name="phone" 
+                               class="form-control bg-transparent border-secondary text-light" 
+                               value="{{ user.phone or '' }}" placeholder="+57 300 123 4567">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="date_of_birth" class="form-label">Fecha de Nacimiento</label>
+                        <input type="date" id="date_of_birth" name="date_of_birth" 
+                               class="form-control bg-transparent border-secondary text-light" 
+                               value="{{ user.date_of_birth.strftime('%Y-%m-%d') if user.date_of_birth else '' }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuración del Sistema -->
+            <div class="col-lg-6">
+                <div class="biomech-glass p-4 mb-4">
+                    <h4 class="text-biomech-green mb-3">
+                        <i class="bi bi-gear"></i> Configuración del Sistema
+                    </h4>
+                    
+                    <div class="mb-3">
+                        <label for="role" class="form-label">
+                            Rol <span class="text-danger">*</span>
+                        </label>
+                        <select id="role" name="role" class="form-select bg-transparent border-secondary text-light" required>
+                            <option value="student" {{ 'selected' if user.role == 'student' else '' }}>Estudiante</option>
+                            <option value="tech" {{ 'selected' if user.role == 'tech' else '' }}>Técnico</option>
+                            {% if session.role == 'admin' %}
+                            <option value="admin" {{ 'selected' if user.role == 'admin' else '' }}>Administrador</option>
+                            {% endif %}
+                        </select>
+                        <div class="form-text text-muted">Los roles determinan los permisos del usuario</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="status" class="form-label">
+                            Estado <span class="text-danger">*</span>
+                        </label>
+                        <select id="status" name="status" class="form-select bg-transparent border-secondary text-light" required>
+                            <option value="active" {{ 'selected' if user.status == 'active' else '' }}>Activo</option>
+                            <option value="inactive" {{ 'selected' if user.status == 'inactive' else '' }}>Inactivo</option>
+                            <option value="suspended" {{ 'selected' if user.status == 'suspended' else '' }}>Suspendido</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="height_cm" class="form-label">
+                            Altura (cm) <span class="text-danger">*</span>
+                        </label>
+                        <input type="number" id="height_cm" name="height_cm" 
+                               class="form-control bg-transparent border-secondary text-light" 
+                               value="{{ user.height_cm }}" min="100" max="250" required>
+                        <div class="form-text text-muted">Requerido para análisis biomecánico</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="emergency_contact" class="form-label">Contacto de Emergencia</label>
+                        <input type="text" id="emergency_contact" name="emergency_contact" 
+                               class="form-control bg-transparent border-secondary text-light" 
+                               value="{{ user.emergency_contact or '' }}" 
+                               placeholder="Nombre y teléfono">
+                    </div>
+                </div>
+
+                <!-- Cambiar Contraseña -->
+                <div class="biomech-glass p-4 mb-4">
+                    <h4 class="text-warning mb-3">
+                        <i class="bi bi-key"></i> Cambiar Contraseña
+                    </h4>
+                    
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label">Nueva Contraseña</label>
+                        <input type="password" id="new_password" name="new_password" 
+                               class="form-control bg-transparent border-secondary text-light" 
+                               minlength="6" placeholder="Dejar vacío para mantener actual">
+                        <div class="form-text text-muted">Mínimo 6 caracteres. Dejar vacío para no cambiar.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirmar Contraseña</label>
+                        <input type="password" id="confirm_password" name="confirm_password" 
+                               class="form-control bg-transparent border-secondary text-light" 
+                               placeholder="Repetir nueva contraseña">
+                        <div id="passwordMismatch" class="text-danger mt-1" style="display: none;">
+                            Las contraseñas no coinciden
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notas Médicas -->
+        <div class="row">
+            <div class="col-12">
+                <div class="biomech-glass p-4 mb-4">
+                    <h4 class="text-biomech-purple mb-3">
+                        <i class="bi bi-clipboard-pulse"></i> Notas Médicas
+                    </h4>
+                    
+                    <div class="mb-3">
+                        <label for="medical_notes" class="form-label">Observaciones Médicas</label>
+                        <textarea id="medical_notes" name="medical_notes" rows="4" 
+                                  class="form-control bg-transparent border-secondary text-light" 
+                                  placeholder="Lesiones, limitaciones, recomendaciones médicas...">{{ user.medical_notes or '' }}</textarea>
+                        <div class="form-text text-muted">
+                            Información importante para el análisis biomecánico y la seguridad del usuario
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="bi bi-check-circle"></i> Guardar Cambios
+                </button>
+                <a href="{{ url_for('admin_user_detail', user_id=user.id) }}" class="btn btn-outline-secondary btn-lg ms-2">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+.form-control:focus,
+.form-select:focus {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-color: var(--biomech-cyan);
+    box-shadow: 0 0 0 0.2rem rgba(0, 212, 255, 0.25);
+    color: white;
+}
+
+.form-select option {
+    background-color: #1a1a1a;
+    color: white;
+}
+
+.biomech-glass {
+    transition: all 0.3s ease;
+}
+
+.biomech-glass:hover {
+    border-color: rgba(0, 212, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
+}
+
+.btn-lg {
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+}
+
+.text-danger {
+    color: #ff6b6b !important;
+}
+
+.text-success {
+    color: #51cf66 !important;
+}
+
+.alert-danger {
+    background-color: rgba(255, 107, 107, 0.1);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    color: #ff6b6b;
+}
+
+.form-text {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+#passwordMismatch {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('editUserForm');
+    const newPassword = document.getElementById('new_password');
+    const confirmPassword = document.getElementById('confirm_password');
+    const passwordMismatch = document.getElementById('passwordMismatch');
+    
+    // Validación de contraseñas
+    function validatePasswords() {
+        if (newPassword.value && confirmPassword.value) {
+            if (newPassword.value !== confirmPassword.value) {
+                passwordMismatch.style.display = 'block';
+                confirmPassword.setCustomValidity('Las contraseñas no coinciden');
+                return false;
+            } else {
+                passwordMismatch.style.display = 'none';
+                confirmPassword.setCustomValidity('');
+                return true;
+            }
+        } else if (newPassword.value && !confirmPassword.value) {
+            confirmPassword.setCustomValidity('Confirma la nueva contraseña');
+            return false;
+        } else {
+            passwordMismatch.style.display = 'none';
+            confirmPassword.setCustomValidity('');
+            return true;
+        }
+    }
+    
+    newPassword.addEventListener('input', validatePasswords);
+    confirmPassword.addEventListener('input', validatePasswords);
+    
+    // Validación del formulario
+    form.addEventListener('submit', function(e) {
+        if (!validatePasswords()) {
+            e.preventDefault();
+            confirmPassword.focus();
+            return false;
+        }
+        
+        // Mostrar loading
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
+        submitBtn.disabled = true;
+        
+        // Si algo falla, restaurar el botón después de 3 segundos
+        setTimeout(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }, 3000);
+    });
+    
+    // Validación del nombre de usuario
+    const username = document.getElementById('username');
+    username.addEventListener('input', function() {
+        const value = this.value;
+        const isValid = /^[a-zA-Z0-9_]+$/.test(value);
+        
+        if (value && !isValid) {
+            this.setCustomValidity('Solo se permiten letras, números y guiones bajos');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+    
+    // Validación de altura
+    const height = document.getElementById('height_cm');
+    height.addEventListener('input', function() {
+        const value = parseInt(this.value);
+        if (value && (value < 100 || value > 250)) {
+            this.setCustomValidity('La altura debe estar entre 100 y 250 cm');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+});
+
+function setDeleteReason() {
+    const reason = document.getElementById('deleteReason').value;
+    document.getElementById('deleteReasonHidden').value = reason;
+}
+
+// Prevenir envío accidental del formulario con Enter
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && e.target.type !== 'submit' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+    }
+});
+</script>
+{% endblock %}

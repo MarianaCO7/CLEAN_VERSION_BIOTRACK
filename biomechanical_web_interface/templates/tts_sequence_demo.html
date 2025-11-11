@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo: Audio Guide con TTS Sequences</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .status {
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        
+        button {
+            padding: 12px 24px;
+            margin: 5px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button.primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        button.primary:hover {
+            background: #2980b9;
+        }
+        
+        button.success {
+            background: #27ae60;
+            color: white;
+        }
+        
+        button.success:hover {
+            background: #229954;
+        }
+        
+        button.danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        button.danger:hover {
+            background: #c0392b;
+        }
+        
+        button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            margin: 5px 0;
+            background: white;
+        }
+        
+        .log {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #3498db;
+            padding-left: 10px;
+        }
+        
+        .log-entry.success { border-color: #27ae60; }
+        .log-entry.error { border-color: #e74c3c; }
+        .log-entry.warning { border-color: #f39c12; }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .info-box {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .info-box h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎙️ Demo: Sistema de Audio con TTS Sequences</h1>
+        
+        <div class="info-box">
+            <h3>📖 ¿Qué es esto?</h3>
+            <p>Esta demo muestra el nuevo sistema de instrucciones de voz con pausas programáticas.</p>
+            <p><strong>Característica nueva:</strong> Reproduce secuencias de instrucciones cortas con pausas automáticas para evitar cortes de audio y mejorar la comprensión.</p>
+        </div>
+        
+        <!-- ESTADO DEL SISTEMA -->
+        <div class="section">
+            <h2>🔍 Estado del Sistema</h2>
+            <div id="statusContainer"></div>
+        </div>
+        
+        <!-- CONTROLES -->
+        <div class="section">
+            <h2>🎮 Controles</h2>
+            
+            <div>
+                <label><strong>Segmento:</strong></label><br>
+                <select id="segmentSelect">
+                    <option value="">Cargando...</option>
+                </select>
+            </div>
+            
+            <div>
+                <label><strong>Ejercicio:</strong></label><br>
+                <select id="exerciseSelect">
+                    <option value="">Selecciona segmento primero</option>
+                </select>
+            </div>
+            
+            <div class="controls">
+                <button class="primary" id="loadConfigBtn">📋 Cargar Config</button>
+                <button class="success" id="playSequenceBtn" disabled>▶️ Reproducir Secuencia TTS</button>
+                <button class="primary" id="playLegacyBtn" disabled>📢 Instrucciones Legacy</button>
+                <button class="danger" id="stopAudioBtn">⏹️ Detener Audio</button>
+            </div>
+            
+            <div class="controls">
+                <button class="primary" id="toggleMuteBtn">🔊 Toggle Mute</button>
+                <button class="primary" id="testSpeakBtn">🎵 Test Speak</button>
+            </div>
+        </div>
+        
+        <!-- INFO DEL EJERCICIO -->
+        <div class="section">
+            <h2>📋 Información del Ejercicio</h2>
+            <div id="exerciseInfo"></div>
+        </div>
+        
+        <!-- LOG DE EVENTOS -->
+        <div class="section">
+            <h2>📜 Log de Eventos</h2>
+            <div class="log" id="logContainer"></div>
+        </div>
+    </div>
+    
+    <!-- SCRIPTS -->
+    <script src="/static/js/audio_guide_system.js"></script>
+    <script src="/static/js/exercise_config_loader.js"></script>
+    
+    <script>
+        // =================================================================
+        // SISTEMA DE LOGGING
+        // =================================================================
+        
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        // =================================================================
+        // ACTUALIZAR ESTADO
+        // =================================================================
+        
+        function updateStatus() {
+            const statusContainer = document.getElementById('statusContainer');
+            
+            const audioStatus = window.audioGuide?.getStatus() || {};
+            const loaderStatus = window.exerciseConfigLoader?.getStatus() || {};
+            
+            statusContainer.innerHTML = `
+                <div class="status ${audioStatus.isInitialized ? 'success' : 'warning'}">
+                    🔊 Audio Guide: ${audioStatus.isInitialized ? 'Inicializado' : 'No inicializado'}
+                    ${audioStatus.enabled ? '(ACTIVO)' : '(SILENCIADO)'}
+                    <br>Voz: ${audioStatus.voiceName || 'ninguna'}
+                </div>
+                
+                <div class="status ${loaderStatus.isLoaded ? 'success' : 'info'}">
+                    📋 Config Loader: ${loaderStatus.isLoaded ? 'Cargado' : 'No cargado'}
+                    ${loaderStatus.isLoading ? '(Cargando...)' : ''}
+                    <br>Segmentos: ${loaderStatus.segmentsCount}
+                </div>
+            `;
+        }
+        
+        // =================================================================
+        // CARGAR CONFIGURACIÓN
+        // =================================================================
+        
+        document.getElementById('loadConfigBtn').addEventListener('click', async () => {
+            log('Cargando configuración...', 'info');
+            
+            try {
+                const config = await window.exerciseConfigLoader.load();
+                log(`✅ Configuración cargada: ${window.exerciseConfigLoader.getSegments().length} segmentos`, 'success');
+                
+                // Poblar selector de segmentos
+                const segmentSelect = document.getElementById('segmentSelect');
+                const segments = window.exerciseConfigLoader.getSegments();
+                
+                segmentSelect.innerHTML = segments.map(seg => 
+                    `<option value="${seg}">${seg.charAt(0).toUpperCase() + seg.slice(1)}</option>`
+                ).join('');
+                
+                segmentSelect.disabled = false;
+                updateStatus();
+                
+                // Disparar cambio para cargar ejercicios del primer segmento
+                segmentSelect.dispatchEvent(new Event('change'));
+                
+            } catch (error) {
+                log(`❌ Error cargando configuración: ${error.message}`, 'error');
+            }
+        });
+        
+        // =================================================================
+        // CAMBIO DE SEGMENTO
+        // =================================================================
+        
+        document.getElementById('segmentSelect').addEventListener('change', (e) => {
+            const segment = e.target.value;
+            if (!segment) return;
+            
+            const exercises = window.exerciseConfigLoader.getExercises(segment);
+            const exerciseSelect = document.getElementById('exerciseSelect');
+            
+            exerciseSelect.innerHTML = exercises.map(ex => 
+                `<option value="${ex}">${ex.charAt(0).toUpperCase() + ex.slice(1)}</option>`
+            ).join('');
+            
+            exerciseSelect.disabled = false;
+            log(`Segmento cambiado a: ${segment}`, 'info');
+            
+            // Disparar cambio para mostrar info del primer ejercicio
+            exerciseSelect.dispatchEvent(new Event('change'));
+        });
+        
+        // =================================================================
+        // CAMBIO DE EJERCICIO
+        // =================================================================
+        
+        document.getElementById('exerciseSelect').addEventListener('change', (e) => {
+            const segment = document.getElementById('segmentSelect').value;
+            const exercise = e.target.value;
+            
+            if (!segment || !exercise) return;
+            
+            const exerciseConfig = window.exerciseConfigLoader.getExercise(segment, exercise);
+            const hasTTS = window.exerciseConfigLoader.hasTTSSequence(segment, exercise);
+            
+            // Mostrar info
+            const infoDiv = document.getElementById('exerciseInfo');
+            infoDiv.innerHTML = `
+                <h3>${exerciseConfig.name || exercise}</h3>
+                <p><strong>Descripción:</strong> ${exerciseConfig.description || 'N/A'}</p>
+                <p><strong>Plano:</strong> ${exerciseConfig.plane || 'N/A'}</p>
+                <p><strong>Tiene TTS Sequence:</strong> ${hasTTS ? '✅ SÍ' : '❌ NO'}</p>
+                ${hasTTS ? `<p><strong>Líneas TTS:</strong> ${exerciseConfig.tts_sequence.length}</p>` : ''}
+            `;
+            
+            // Habilitar/deshabilitar botones
+            document.getElementById('playSequenceBtn').disabled = !hasTTS;
+            document.getElementById('playLegacyBtn').disabled = !exerciseConfig.instructions;
+            
+            log(`Ejercicio cambiado a: ${segment}/${exercise}`, 'info');
+        });
+        
+        // =================================================================
+        // REPRODUCIR SECUENCIA TTS
+        // =================================================================
+        
+        document.getElementById('playSequenceBtn').addEventListener('click', async () => {
+            const segment = document.getElementById('segmentSelect').value;
+            const exercise = document.getElementById('exerciseSelect').value;
+            
+            if (!segment || !exercise) {
+                log('⚠️ Selecciona segmento y ejercicio primero', 'warning');
+                return;
+            }
+            
+            const sequence = window.exerciseConfigLoader.getTTSSequence(segment, exercise);
+            
+            if (!sequence) {
+                log('❌ No hay secuencia TTS para este ejercicio', 'error');
+                return;
+            }
+            
+            log(`▶️ Reproduciendo secuencia TTS: ${sequence.length} instrucciones`, 'info');
+            
+            try {
+                await window.audioGuide.speakSequence(sequence);
+                log(`✅ Secuencia completada`, 'success');
+            } catch (error) {
+                log(`❌ Error reproduciendo secuencia: ${error.message}`, 'error');
+            }
+        });
+        
+        // =================================================================
+        // REPRODUCIR INSTRUCCIONES LEGACY
+        // =================================================================
+        
+        document.getElementById('playLegacyBtn').addEventListener('click', () => {
+            const segment = document.getElementById('segmentSelect').value;
+            const exercise = document.getElementById('exerciseSelect').value;
+            
+            const instructions = window.exerciseConfigLoader.getInstructions(segment, exercise);
+            
+            if (!instructions) {
+                log('❌ No hay instrucciones legacy', 'error');
+                return;
+            }
+            
+            const text = `${instructions.position}. ${instructions.movement}`;
+            log(`📢 Reproduciendo instrucciones legacy`, 'info');
+            window.audioGuide.speak(text);
+        });
+        
+        // =================================================================
+        // CONTROL DE AUDIO
+        // =================================================================
+        
+        document.getElementById('stopAudioBtn').addEventListener('click', () => {
+            window.audioGuide.stop();
+            log('⏹️ Audio detenido', 'info');
+        });
+        
+        document.getElementById('toggleMuteBtn').addEventListener('click', () => {
+            const enabled = window.audioGuide.toggleMute();
+            log(`🔊 Audio ${enabled ? 'ACTIVADO' : 'SILENCIADO'}`, 'info');
+            updateStatus();
+        });
+        
+        document.getElementById('testSpeakBtn').addEventListener('click', () => {
+            const testText = "Hola, este es un test del sistema de audio.";
+            log(`🎵 Test: "${testText}"`, 'info');
+            window.audioGuide.speak(testText);
+        });
+        
+        // =================================================================
+        // EVENTOS GLOBALES
+        // =================================================================
+        
+        window.addEventListener('audioGuideReady', () => {
+            log('✅ Audio Guide inicializado', 'success');
+            updateStatus();
+        });
+        
+        window.addEventListener('exerciseConfigLoaded', () => {
+            log('✅ Configuración de ejercicios cargada automáticamente', 'success');
+            updateStatus();
+            
+            // Auto-click en cargar config
+            document.getElementById('loadConfigBtn').click();
+        });
+        
+        // =================================================================
+        // INICIALIZACIÓN
+        // =================================================================
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🚀 Demo inicializada', 'info');
+            updateStatus();
+            
+            // Actualizar estado cada 2 segundos
+            setInterval(updateStatus, 2000);
+        });
+    </script>
+</body>
+</html>

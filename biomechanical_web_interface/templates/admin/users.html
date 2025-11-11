@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Usuarios - Admin{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}" class="text-biomech-cyan">Admin</a></li>
+            <li class="breadcrumb-item active">Usuarios</li>
+        </ol>
+    </nav>
+
+    <!-- Header con Filtros -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="biomech-glass p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h2 class="text-biomech-cyan mb-2">
+                            <i class="bi bi-people"></i> Gestión de Usuarios
+                        </h2>
+                        <p class="text-muted mb-0">
+                            Total: {{ users.total }} usuarios | Página {{ users.page }} de {{ users.pages }}
+                        </p>
+                    </div>
+                    <a href="{{ url_for('admin_create_user') }}" class="biomech-button">
+                        <i class="bi bi-person-plus"></i> Crear Usuario
+                    </a>
+                </div>
+
+                <!-- Filtros -->
+                <form method="GET" class="row g-3">
+                    <div class="col-md-4">
+                        <input type="text" name="search" class="form-control bg-transparent border-secondary text-light" 
+                               placeholder="Buscar usuario..." value="{{ search }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-select bg-transparent border-secondary text-light">
+                            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Todos los estados</option>
+                            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Activos</option>
+                            <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactivos</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-outline-info w-100">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        {% if search or status_filter != 'all' %}
+                        <a href="{{ url_for('admin_users') }}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-x-circle"></i> Limpiar
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Usuarios -->
+    <div class="row">
+        <div class="col-12">
+            <div class="biomech-glass">
+                {% if users.items %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Información</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                                <th>Último Acceso</th>
+                                <th>Análisis</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users.items %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="user-avatar-sm me-3">
+                                            <i class="bi bi-person-fill"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 text-light">{{ user.username }}</h6>
+                                            <small class="text-muted">ID: {{ user.id }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <div class="text-light">{{ user.full_name or 'Sin nombre' }}</div>
+                                        <small class="text-muted">{{ user.email or 'Sin email' }}</small>
+                                        {% if user.get_age() %}
+                                        <br><small class="text-info">{{ user.get_age() }} años</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if user.role == 'admin' %}
+                                        <span class="badge bg-danger">Administrador</span>
+                                    {% elif user.role == 'tech' %}
+                                        <span class="badge bg-warning">Técnico</span>
+                                    {% else %}
+                                        <span class="badge bg-info">Estudiante</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if user.status == 'active' %}
+                                        <span class="badge bg-success">Activo</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ user.status|title }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if user.last_login %}
+                                        <small class="text-success">
+                                            {{ user.last_login.strftime('%d/%m/%Y') }}<br>
+                                            {{ user.last_login.strftime('%H:%M') }}
+                                        </small>
+                                    {% else %}
+                                        <small class="text-muted">Nunca</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="text-center">
+                                        <span class="badge bg-primary">{{ user.analyses|length }}</span>
+                                        <br><small class="text-muted">análisis</small>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('admin_user_detail', user_id=user.id) }}" 
+                                           class="btn btn-sm btn-outline-info" title="Ver detalle">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('admin_edit_user', user_id=user.id) }}" 
+                                           class="btn btn-sm btn-outline-warning" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        {% if user.id != session.user_id %}
+                                        <button type="button" class="btn btn-sm btn-outline-{{ 'secondary' if user.status == 'active' else 'success' }}" 
+                                                onclick="toggleUserStatus({{ user.id }}, '{{ user.username }}', '{{ user.status }}')"
+                                                title="{{ 'Desactivar' if user.status == 'active' else 'Activar' }} usuario">
+                                            <i class="bi bi-{{ 'pause' if user.status == 'active' else 'play' }}-circle"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación -->
+                {% if users.pages > 1 %}
+                <div class="p-4 border-top border-secondary">
+                    <nav aria-label="Paginación">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if users.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link bg-transparent border-secondary text-light" 
+                                   href="{{ url_for('admin_users', page=users.prev_num, search=search, status=status_filter) }}">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for page_num in users.iter_pages() %}
+                                {% if page_num %}
+                                    {% if page_num != users.page %}
+                                    <li class="page-item">
+                                        <a class="page-link bg-transparent border-secondary text-light" 
+                                           href="{{ url_for('admin_users', page=page_num, search=search, status=status_filter) }}">
+                                            {{ page_num }}
+                                        </a>
+                                    </li>
+                                    {% else %}
+                                    <li class="page-item active">
+                                        <span class="page-link bg-biomech-cyan border-biomech-cyan">{{ page_num }}</span>
+                                    </li>
+                                    {% endif %}
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link bg-transparent border-secondary text-muted">…</span>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if users.has_next %}
+                            <li class="page-item">
+                                <a class="page-link bg-transparent border-secondary text-light" 
+                                   href="{{ url_for('admin_users', page=users.next_num, search=search, status=status_filter) }}">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+
+                {% else %}
+                <!-- Sin usuarios -->
+                <div class="p-5 text-center">
+                    <i class="bi bi-people text-muted" style="font-size: 4rem;"></i>
+                    <h4 class="text-muted mt-3">No se encontraron usuarios</h4>
+                    <p class="text-muted">
+                        {% if search or status_filter != 'all' %}
+                            Intenta cambiar los filtros de búsqueda.
+                        {% else %}
+                            Crea el primer usuario del sistema.
+                        {% endif %}
+                    </p>
+                    <a href="{{ url_for('admin_create_user') }}" class="biomech-button mt-3">
+                        <i class="bi bi-person-plus"></i> Crear Usuario
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border-0">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-warning">
+                    <i class="bi bi-exclamation-triangle"></i> Confirmar Acción
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="statusModalText" class="text-light"></p>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="statusForm" method="POST" style="display: inline;">
+                    <button type="submit" id="confirmBtn" class="btn">Confirmar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.user-avatar-sm {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--biomech-cyan), var(--biomech-green));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.table th {
+    border-color: rgba(0, 212, 255, 0.2);
+    font-weight: 600;
+    color: var(--biomech-cyan);
+}
+
+.table td {
+    border-color: rgba(255, 255, 255, 0.1);
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 212, 255, 0.05);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--biomech-cyan);
+    box-shadow: 0 0 0 0.2rem rgba(0, 212, 255, 0.25);
+    background-color: rgba(0, 212, 255, 0.05);
+}
+
+.form-select option {
+    background-color: var(--biomech-bg-secondary);
+    color: var(--biomech-text-primary);
+}
+
+.page-link:hover {
+    background-color: rgba(0, 212, 255, 0.1);
+    border-color: var(--biomech-cyan);
+    color: var(--biomech-cyan);
+}
+</style>
+
+<script>
+function toggleUserStatus(userId, username, currentStatus) {
+    const isActive = currentStatus === 'active';
+    const action = isActive ? 'desactivar' : 'activar';
+    const newStatus = isActive ? 'inactivo' : 'activo';
+    
+    document.getElementById('statusModalText').innerHTML = 
+        `¿Estás seguro que deseas <strong>${action}</strong> al usuario <strong>${username}</strong>?<br>
+         <small class="text-muted">El usuario quedará ${newStatus} en el sistema.</small>`;
+    
+    const form = document.getElementById('statusForm');
+    form.action = `/admin/users/${userId}/toggle-status`;
+    
+    const confirmBtn = document.getElementById('confirmBtn');
+    confirmBtn.className = `btn btn-${isActive ? 'warning' : 'success'}`;
+    confirmBtn.innerHTML = `<i class="bi bi-${isActive ? 'pause' : 'play'}-circle"></i> ${action.charAt(0).toUpperCase() + action.slice(1)}`;
+    
+    new bootstrap.Modal(document.getElementById('statusModal')).show();
+}
+</script>
+{% endblock %}

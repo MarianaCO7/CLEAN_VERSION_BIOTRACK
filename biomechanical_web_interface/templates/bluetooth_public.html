@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Paneo Cámara</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 400px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+        
+        .subtitle {
+            text-align: center;
+            opacity: 0.9;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .status {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .status.connected {
+            border: 2px solid #10b981;
+        }
+        
+        .status.disconnected {
+            border: 2px solid #ef4444;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-center { grid-column: 2; grid-row: 2; }
+        
+        .log {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 10px;
+            max-height: 100px;
+            overflow-y: auto;
+            font-size: 0.8rem;
+            font-family: monospace;
+        }
+        
+        .log div {
+            padding: 3px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Control Paneo Cámara</h1>
+        <!-- <p class="subtitle">Controla el ESP32 remotamente desde cualquier dispositivo</p> -->
+        
+        <!-- ⚠️ Banner de advertencia -->
+        <div style="background: rgba(251, 191, 36, 0.15); border: 2px solid rgba(251, 191, 36, 0.4); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; text-align: left;">
+            <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                <div style="font-size: 1.5rem; line-height: 1;">⚠️</div>
+                <div>
+                    <strong style="color: #fcd34d; display: block; margin-bottom: 0.25rem;">Requisito Importante:</strong>
+                    <span style="color: rgba(255, 255, 255, 0.9); font-size: 0.9rem;">
+                        El <strong>"Control PC"</strong> debe estar abierto y conectado al ESP32 para que este control remoto funcione. 
+                        Los comandos se envían a través de Railway.
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 🔇 STATUS Y LOG COMENTADOS (disponibles para debugging futuro) -->
+        <!--
+        <div class="status" id="status">
+            <span id="status-text">⏳ Verificando conexión...</span>
+        </div>
+        -->
+        
+        <div class="controls">
+            <div></div>
+            <button onclick="sendCommand('U')" id="btn-up">⬆️</button>
+            <div></div>
+            
+            <button onclick="sendCommand('L')" id="btn-left">⬅️</button>
+            <button onclick="sendCommand('C')" id="btn-center" class="btn-center">🔄</button>
+            <button onclick="sendCommand('R')" id="btn-right">➡️</button>
+            
+            <div></div>
+            <button onclick="sendCommand('D')" id="btn-down">⬇️</button>
+            <div></div>
+        </div>
+        
+        <!--
+        <div class="log" id="log"></div>
+        -->
+    </div>
+
+    <script>
+        // 🔇 FUNCIONES DE LOG/STATUS COMENTADAS (disponibles para debugging)
+        /*
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            if (!logDiv) return; // Elemento no visible
+            const entry = document.createElement('div');
+            const time = new Date().toLocaleTimeString();
+            entry.textContent = `[${time}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            
+            // Mantener últimos 10 mensajes
+            while (logDiv.children.length > 10) {
+                logDiv.removeChild(logDiv.firstChild);
+            }
+        }
+        
+        function updateStatus(connected) {
+            const statusDiv = document.getElementById('status');
+            if (!statusDiv) return; // Elemento no visible
+            const statusText = document.getElementById('status-text');
+            const buttons = document.querySelectorAll('button');
+            
+            if (connected) {
+                statusDiv.className = 'status connected';
+                statusText.textContent = '✅ Railway Conectado';
+                buttons.forEach(btn => btn.disabled = false);
+            } else {
+                statusDiv.className = 'status disconnected';
+                statusText.textContent = '❌ Railway Desconectado';
+                buttons.forEach(btn => btn.disabled = true);
+            }
+        }
+        */
+        
+        // 🔄 NUEVA LÓGICA: POST directo a Railway (versión limpia sin logs)
+        async function sendCommand(command) {
+            try {
+                const response = await fetch('/api/esp32_command', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ command: command })
+                });
+                
+                const data = await response.json();
+                
+                // ✅ Comando enviado correctamente (sin logs visuales)
+                if (!data.success) {
+                    console.error('Error enviando comando:', data.error);
+                }
+            } catch (error) {
+                console.error('Error de conexión:', error.message);
+            }
+        }
+        
+        // 🔇 VERIFICACIÓN DE CONEXIÓN COMENTADA (ya no necesaria sin status visual)
+        /*
+        async function checkConnection() {
+            try {
+                const response = await fetch('/api/esp32_command', {
+                    method: 'GET'
+                });
+                
+                if (response.ok) {
+                    updateStatus(true);
+                } else {
+                    updateStatus(false);
+                }
+            } catch (error) {
+                updateStatus(false);
+            }
+        }
+        
+        // Verificación periódica
+        setInterval(checkConnection, 5000);
+        
+        // Verificación inicial
+        setTimeout(() => {
+            checkConnection();
+            log('🌐 Control público inicializado');
+            log('📡 Conectado a Railway - Listo para enviar comandos');
+        }, 100);
+        */
+        
+        // ✅ INICIALIZACIÓN SIMPLE (sin verificaciones visuales)
+        console.log('🎮 Control remoto ESP32 inicializado');
+    </script>
+</body>
+</html>
+

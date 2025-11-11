@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEBUG JavaScript - BioTrack</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #000; color: #00ff00; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #00ff00; }
+        .error { color: #ff0000; }
+        .success { color: #00ff00; }
+        .warning { color: #ffff00; }
+    </style>
+</head>
+<body>
+    <h1>🔍 DEBUG JAVASCRIPT - RAILWAY</h1>
+    
+    <div class="test">
+        <h3>1. TEST BÁSICO JAVASCRIPT</h3>
+        <div id="basic-test">Probando...</div>
+    </div>
+    
+    <div class="test">
+        <h3>2. TEST CARGA DE ARCHIVOS</h3>
+        <div id="files-test">Probando...</div>
+    </div>
+    
+    <div class="test">
+        <h3>3. TEST ELEMENTOS DOM</h3>
+        <div id="dom-test">Probando...</div>
+    </div>
+    
+    <div class="test">
+        <h3>4. TEST CLIENT CAMERA HANDLER</h3>
+        <div id="camera-test">Probando...</div>
+    </div>
+    
+    <div class="test">
+        <h3>5. TEST QUICK DETECTOR</h3>
+        <div id="detector-test">Probando...</div>
+    </div>
+    
+    <!-- TEST: Cargar archivos JavaScript -->
+    <script src="{{ url_for('static', filename='js/quick_camera_detector.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/client_camera_handler.js') }}"></script>
+    
+    <script>
+        console.log('🚨🚨🚨 DEBUG PAGE LOADED 🚨🚨🚨');
+        
+        // TEST 1: JavaScript básico
+        try {
+            document.getElementById('basic-test').innerHTML = '<span class="success">✅ JavaScript funcionando</span>';
+            console.log('✅ Test 1: JavaScript básico OK');
+        } catch (e) {
+            document.getElementById('basic-test').innerHTML = '<span class="error">❌ Error: ' + e.message + '</span>';
+            console.error('❌ Test 1 falló:', e);
+        }
+        
+        // TEST 2: Archivos cargados
+        setTimeout(() => {
+            try {
+                let filesLoaded = [];
+                let filesErrors = [];
+                
+                if (typeof QuickCameraDetector !== 'undefined') {
+                    filesLoaded.push('QuickCameraDetector');
+                } else {
+                    filesErrors.push('QuickCameraDetector NO CARGADO');
+                }
+                
+                if (typeof ClientCameraHandler !== 'undefined') {
+                    filesLoaded.push('ClientCameraHandler');
+                } else {
+                    filesErrors.push('ClientCameraHandler NO CARGADO');
+                }
+                
+                if (window.clientCameraHandler) {
+                    filesLoaded.push('window.clientCameraHandler');
+                } else {
+                    filesErrors.push('window.clientCameraHandler NO EXISTE');
+                }
+                
+                let result = '';
+                if (filesLoaded.length > 0) {
+                    result += '<span class="success">✅ Archivos cargados: ' + filesLoaded.join(', ') + '</span><br>';
+                }
+                if (filesErrors.length > 0) {
+                    result += '<span class="error">❌ Archivos faltantes: ' + filesErrors.join(', ') + '</span>';
+                }
+                
+                document.getElementById('files-test').innerHTML = result;
+                console.log('✅ Test 2: Files loaded:', filesLoaded, 'Errors:', filesErrors);
+                
+            } catch (e) {
+                document.getElementById('files-test').innerHTML = '<span class="error">❌ Error test archivos: ' + e.message + '</span>';
+                console.error('❌ Test 2 falló:', e);
+            }
+        }, 100);
+        
+        // TEST 3: Elementos DOM
+        setTimeout(() => {
+            try {
+                // Crear elementos de prueba que usa analysis.html
+                let testDiv = document.createElement('div');
+                testDiv.innerHTML = `
+                    <img id="analysisStream" style="display:none;">
+                    <div id="loadingMessage">Loading...</div>
+                    <div id="runningButtons" style="display:none;"></div>
+                `;
+                document.body.appendChild(testDiv);
+                
+                let streamImg = document.getElementById('analysisStream');
+                let loadingMsg = document.getElementById('loadingMessage');
+                let runningBtns = document.getElementById('runningButtons');
+                
+                let domResults = [];
+                if (streamImg) domResults.push('analysisStream ✅');
+                else domResults.push('analysisStream ❌');
+                
+                if (loadingMsg) domResults.push('loadingMessage ✅');
+                else domResults.push('loadingMessage ❌');
+                
+                if (runningBtns) domResults.push('runningButtons ✅');
+                else domResults.push('runningButtons ❌');
+                
+                document.getElementById('dom-test').innerHTML = '<span class="success">DOM Test: ' + domResults.join(', ') + '</span>';
+                console.log('✅ Test 3: DOM elements:', domResults);
+                
+            } catch (e) {
+                document.getElementById('dom-test').innerHTML = '<span class="error">❌ Error DOM test: ' + e.message + '</span>';
+                console.error('❌ Test 3 falló:', e);
+            }
+        }, 200);
+        
+        // TEST 4: ClientCameraHandler
+        setTimeout(() => {
+            try {
+                if (window.clientCameraHandler) {
+                    document.getElementById('camera-test').innerHTML = '<span class="success">✅ ClientCameraHandler disponible</span>';
+                    console.log('✅ Test 4: ClientCameraHandler OK');
+                } else {
+                    document.getElementById('camera-test').innerHTML = '<span class="error">❌ ClientCameraHandler NO disponible</span>';
+                    console.error('❌ Test 4: ClientCameraHandler faltante');
+                }
+            } catch (e) {
+                document.getElementById('camera-test').innerHTML = '<span class="error">❌ Error camera test: ' + e.message + '</span>';
+                console.error('❌ Test 4 falló:', e);
+            }
+        }, 300);
+        
+        // TEST 5: QuickCameraDetector
+        setTimeout(() => {
+            try {
+                if (typeof QuickCameraDetector !== 'undefined') {
+                    let detector = new QuickCameraDetector();
+                    document.getElementById('detector-test').innerHTML = '<span class="success">✅ QuickCameraDetector funciona</span>';
+                    console.log('✅ Test 5: QuickCameraDetector OK');
+                } else {
+                    document.getElementById('detector-test').innerHTML = '<span class="error">❌ QuickCameraDetector NO disponible</span>';
+                    console.error('❌ Test 5: QuickCameraDetector faltante');
+                }
+            } catch (e) {
+                document.getElementById('detector-test').innerHTML = '<span class="error">❌ Error detector test: ' + e.message + '</span>';
+                console.error('❌ Test 5 falló:', e);
+            }
+        }, 400);
+        
+        // LOG FINAL
+        setTimeout(() => {
+            console.log('🔍🔍🔍 TODOS LOS TESTS COMPLETADOS 🔍🔍🔍');
+            console.log('💡 Revisa todos los logs arriba para identificar el problema');
+        }, 500);
+    </script>
+</body>
+</html>
