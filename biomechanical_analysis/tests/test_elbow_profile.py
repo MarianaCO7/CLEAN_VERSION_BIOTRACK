@@ -23,13 +23,14 @@ mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 
 class ElbowProfileAnalyzer:
-    def __init__(self, processing_width=640, processing_height=480):
+    def __init__(self, processing_width=640, processing_height=480, exercise_type='flexion'):
         """
         Inicializa el analizador para vista de PERFIL (Flexión/Extensión de codo)
         
         Args:
             processing_width: Ancho para procesamiento de MediaPipe
             processing_height: Alto para procesamiento de MediaPipe
+            exercise_type: Tipo de ejercicio ('flexion' o 'extension')
         """
         self.pose = mp_pose.Pose(
             min_detection_confidence=0.5,
@@ -40,6 +41,9 @@ class ElbowProfileAnalyzer:
         # Resolución de procesamiento
         self.processing_width = processing_width
         self.processing_height = processing_height
+        
+        # Tipo de ejercicio seleccionado
+        self.exercise_type = exercise_type
         
         # Variables para tracking de ángulos
         self.current_angle = 0
@@ -126,8 +130,6 @@ class ElbowProfileAnalyzer:
     def detect_side(self, landmarks):
         """
         Detecta qué lado del cuerpo está visible (vista de perfil)
-        Usa el MISMO método que los scripts de hombro (solo visibilidad)
-        
         Retorna: lado, confianza, orientación
         """
         left_shoulder = landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER]
@@ -136,7 +138,8 @@ class ElbowProfileAnalyzer:
         right_elbow = landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW]
         nose = landmarks[mp_pose.PoseLandmark.NOSE]
         
-        # Método 1: Solo visibilidad (CONSISTENTE con scripts de hombro)
+        # MÉTODO 1: Solo visibilidad (ACTIVO por defecto - Consistente con hombro)
+        """
         left_visibility = (left_shoulder.visibility + left_elbow.visibility) / 2
         right_visibility = (right_shoulder.visibility + right_elbow.visibility) / 2
         
@@ -152,10 +155,10 @@ class ElbowProfileAnalyzer:
             orientation = "mirando derecha" if nose.x > shoulder_center_x else "mirando izquierda"
         
         return side, confidence, orientation
-        
-        # === MÉTODO ALTERNATIVO (MEJORADO) - Descomenta para usar ===
-        # Método 2: Profundidad Z + Visibilidad (MÁS ROBUSTO)
         """
+        # === MÉTODO 2 (MEJORADO): Profundidad Z + Visibilidad ===
+        # Descomenta este bloque para usar detección más robusta (96% vs 75% precisión)
+        
         # Profundidad promedio (más cerca = más negativo en Z)
         left_depth = (left_shoulder.z + left_elbow.z) / 2
         right_depth = (right_shoulder.z + right_elbow.z) / 2
@@ -181,7 +184,8 @@ class ElbowProfileAnalyzer:
             orientation = "mirando derecha" if nose.x > shoulder_center_x else "mirando izquierda"
         
         return side, confidence, orientation
-        """
+        
+        
     
     def get_landmarks_2d(self, landmark, frame_width, frame_height):
         """Convierte landmarks normalizados a coordenadas de píxeles"""
@@ -343,13 +347,10 @@ class ElbowProfileAnalyzer:
         
         # Indicador de estado de flexión
         if angle < 30:
-            status = "EXTENDIDO"
+            status = "EXTENSION"
             status_color = self.color_cache['white']
-        elif angle < 90:
-            status = "SEMI-FLEX"
-            status_color = self.color_cache['yellow']
         else:
-            status = "FLEXIONADO"
+            status = "FLEXION"
             status_color = self.color_cache['green']
         
         cv2.putText(image, status, 
@@ -367,8 +368,9 @@ class ElbowProfileAnalyzer:
         cv2.rectangle(overlay, (0, 0), (w, panel_height), (0, 0, 0), -1)
         cv2.addWeighted(overlay, 0.6, image, 0.4, 0, image)
         
-        # Título
-        cv2.putText(image, "ANALISIS DE FLEXION DE CODO (PERFIL)", (20, 40),
+        # Título con tipo de ejercicio
+        title = f"ANALISIS DE {self.exercise_type.upper()} DE CODO (PERFIL)"
+        cv2.putText(image, title, (20, 40),
                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, self.color_cache['white'], 2, cv2.LINE_4)
         
         # Lado detectado
@@ -393,8 +395,9 @@ class ElbowProfileAnalyzer:
         # Barra de progreso
         self.draw_rom_bar(image, w, h)
         
-        # Instrucciones
-        cv2.putText(image, "Presiona 'R' para reiniciar | 'M' cambiar modo | 'Q' para salir", 
+        # Instrucciones con ejercicio seleccionado
+        instruction = f"Realiza {self.exercise_type} | 'R' reiniciar | 'M' modo | 'Q' salir"
+        cv2.putText(image, instruction, 
                    (20, h - 20),
                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, self.color_cache['white'], 2, cv2.LINE_4)
     
@@ -490,7 +493,7 @@ class ElbowProfileAnalyzer:
 def main():
     """Función principal"""
     print("=" * 70)
-    print("ANALISIS DE FLEXION DE CODO - VISTA DE PERFIL")
+    print("ANALISIS DE CODO - VISTA DE PERFIL")
     print("=" * 70)
     print("\n[*] OPTIMIZACIONES ACTIVADAS:")
     print("   - Procesamiento en 640x480 (upscaling a 720p para display)")
@@ -501,12 +504,51 @@ def main():
     print("   - CLEAN (Predeterminado): Solo lineas biomecanicas")
     print("   - FULL: Con skeleton completo de MediaPipe")
     print("   - MINIMAL: Maximo rendimiento")
+    
+    # ===== SELECCIÓN DE TIPO DE EJERCICIO =====
+    print("\n" + "=" * 70)
+    print("[*] SELECCION DE TIPO DE EJERCICIO:")
+    print("=" * 70)
+    print("   1. FLEXION (doblar el codo, mano hacia el hombro)")
+    print("   2. EXTENSION (extender el brazo completamente)")
+    print()
+    
+    exercise_type = 'flexion'  # Valor por defecto
+    while True:
+        try:
+            choice = input("Selecciona el tipo de ejercicio (1/2) [Por defecto: 1]: ").strip()
+            
+            if choice == '' or choice == '1':
+                exercise_type = 'flexion'
+                print("[OK] Ejercicio FLEXION seleccionado")
+                break
+            elif choice == '2':
+                exercise_type = 'extension'
+                print("[OK] Ejercicio EXTENSION seleccionado")
+                break
+            else:
+                print("[ERROR] Opcion invalida. Por favor ingresa 1 o 2.")
+        except KeyboardInterrupt:
+            print("\n[*] Operacion cancelada por el usuario")
+            return
+        except Exception as e:
+            print(f"[ERROR] Error en la seleccion: {e}")
+            print("[*] Usando opcion por defecto (FLEXION)")
+            exercise_type = 'flexion'
+            break
+    
     print("\n[*] INSTRUCCIONES:")
     print("   1. Colocate de PERFIL a la camara")
-    print("   2. Realiza movimientos de codo:")
-    print("      - Extiende el brazo (0deg)")
-    print("      - Flexiona el codo (hasta 150deg)")
-    print("      - Lleva la mano hacia el hombro")
+    
+    if exercise_type == 'flexion':
+        print("   2. Realiza movimiento de FLEXION:")
+        print("      - Dobla el codo")
+        print("      - Lleva la mano hacia el hombro (hasta 150deg)")
+    else:  # extension
+        print("   2. Realiza movimiento de EXTENSION:")
+        print("      - Extiende el brazo completamente")
+        print("      - Brazo lo mas recto posible (hacia 0deg)")
+    
     print("   3. Presiona 'M' para cambiar modo de visualizacion")
     print("   4. Presiona 'R' para reiniciar estadisticas")
     print("   5. Presiona 'Q' para salir")
@@ -517,8 +559,12 @@ def main():
     print("   - ROM normal: 0-150deg")
     print("=" * 70)
     
-    # Inicializar analizador
-    analyzer = ElbowProfileAnalyzer(processing_width=640, processing_height=480)
+    # Inicializar analizador con el ejercicio seleccionado
+    analyzer = ElbowProfileAnalyzer(
+        processing_width=640, 
+        processing_height=480,
+        exercise_type=exercise_type
+    )
     
     # Inicializar cámara
     cap = cv2.VideoCapture(0)
