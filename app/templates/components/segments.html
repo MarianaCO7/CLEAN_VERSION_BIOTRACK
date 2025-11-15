@@ -1,0 +1,489 @@
+{% extends "base.html" %}
+
+{% block title %}Segmentos - BioTrack{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- 🎯 HEADER -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="dashboard-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">
+                        <span class="gradient-text">Segmentos</span>
+                        <span class="hero-subtitle">Biomecánicos</span>
+                    </h1>
+                    <p class="hero-description">
+                        Selecciona el tipo de análisis que deseas realizar para evaluar el movimiento articular.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📋 INFORMACIÓN GENERAL -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="info-panel">
+                <h3>
+                    <i class="bi bi-info-circle-fill"></i>
+                    Información General
+                </h3>
+                <div class="row g-4 mt-2">
+                    <div class="col-md-4">
+                        <div class="info-card">
+                            <div class="info-icon">
+                                <i class="bi bi-camera-video"></i>
+                            </div>
+                            <h5>Preparación</h5>
+                            <ul>
+                                <li>Fondo despejado sin obstáculos</li>
+                                <li>Buena iluminación frontal</li>
+                                <li>Ropa que contraste con el fondo</li>
+                                <li>Mantén la cámara estable</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-card">
+                            <div class="info-icon">
+                                <i class="bi bi-activity"></i>
+                            </div>
+                            <h5>Durante el Análisis</h5>
+                            <ul>
+                                <li>Movimientos lentos y controlados</li>
+                                <li>Mantente en el campo de visión</li>
+                                <li>Sigue las instrucciones en pantalla</li>
+                                <li>Respira con normalidad</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-card">
+                            <div class="info-icon">
+                                <i class="bi bi-heart-pulse"></i>
+                            </div>
+                            <h5>Recomendaciones</h5>
+                            <ul>
+                                <li>Calienta antes de comenzar</li>
+                                <li>Detente si sientes dolor</li>
+                                <li>Consulta con un profesional</li>
+                                <li>Realiza el test en un ambiente seguro</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🏃 GRID DE SEGMENTOS -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="section-title">
+                <i class="bi bi-grid-3x3-gap"></i>
+                Selecciona un Segmento
+            </h2>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Hombro -->
+        <div class="col-lg-4 col-md-6">
+            <div class="segment-card" data-segment="shoulder">
+                <div class="segment-icon shoulder">
+                    <img src="{{ url_for('static', filename='images/joints/shoulder_1.png') }}" alt="Hombro" class="joint-icon">
+                </div>
+                <div class="segment-content">
+                    <h4>Hombro</h4>
+                    <p>Flexión, extensión, abducción y rotación glenohumeral</p>
+                    <div class="segment-badges">
+                        <span class="badge-item">
+                            <i class="bi bi-diagram-3"></i>
+                            Frontal
+                        </span>
+                        <span class="badge-item">
+                            <i class="bi bi-person-standing"></i>
+                            Lateral
+                        </span>
+                    </div>
+                    <a href="{{ url_for('main.segment_exercises', segment_type='shoulder') }}" class="segment-button">
+                        <i class="bi bi-play-circle-fill"></i>
+                        Ir a Ejercicios
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Codo -->
+        <div class="col-lg-4 col-md-6">
+            <div class="segment-card" data-segment="elbow">
+                <div class="segment-icon elbow">
+                    <img src="{{ url_for('static', filename='images/joints/elbow_1.png') }}" alt="Codo" class="joint-icon">
+                </div>
+                <div class="segment-content">
+                    <h4>Codo</h4>
+                    <p>Flexión, extensión y movimientos de pronación-supinación</p>
+                    <div class="segment-badges">
+                        <span class="badge-item">
+                            <i class="bi bi-person-standing"></i>
+                            Lateral
+                        </span>
+                    </div>
+                    <a href="{{ url_for('main.segment_exercises', segment_type='elbow') }}" class="segment-button">
+                        <i class="bi bi-play-circle-fill"></i>
+                        Ir a Ejercicios
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cadera -->
+        <div class="col-lg-4 col-md-6">
+            <div class="segment-card" data-segment="hip">
+                <div class="segment-icon hip">
+                    <img src="{{ url_for('static', filename='images/joints/hip_1.png') }}" alt="Cadera" class="joint-icon">
+                </div>
+                <div class="segment-content">
+                    <h4>Cadera</h4>
+                    <p>Flexión, extensión, abducción y rotación de cadera</p>
+                    <div class="segment-badges">
+                        <span class="badge-item">
+                            <i class="bi bi-diagram-3"></i>
+                            Frontal
+                        </span>
+                        <span class="badge-item">
+                            <i class="bi bi-person-standing"></i>
+                            Lateral
+                        </span>
+                    </div>
+                    <a href="{{ url_for('main.segment_exercises', segment_type='hip') }}" class="segment-button">
+                        <i class="bi bi-play-circle-fill"></i>
+                        Ir a Ejercicios
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rodilla -->
+        <div class="col-lg-4 col-md-6">
+            <div class="segment-card" data-segment="knee">
+                <div class="segment-icon knee">
+                    <img src="{{ url_for('static', filename='images/joints/knee_1.png') }}" alt="Rodilla" class="joint-icon">
+                </div>
+                <div class="segment-content">
+                    <h4>Rodilla</h4>
+                    <p>Flexión y extensión de la articulación tibiofemoral</p>
+                    <div class="segment-badges">
+                        <span class="badge-item">
+                            <i class="bi bi-person-standing"></i>
+                            Lateral
+                        </span>
+                    </div>
+                    <a href="{{ url_for('main.segment_exercises', segment_type='knee') }}" class="segment-button">
+                        <i class="bi bi-play-circle-fill"></i>
+                        Ir a Ejercicios
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tobillo -->
+        <div class="col-lg-4 col-md-6">
+            <div class="segment-card" data-segment="ankle">
+                <div class="segment-icon ankle">
+                    <img src="{{ url_for('static', filename='images/joints/ankle_1.png') }}" alt="Tobillo" class="joint-icon">
+                </div>
+                <div class="segment-content">
+                    <h4>Tobillo</h4>
+                    <p>Dorsiflexión, plantiflexión e inversión-eversión</p>
+                    <div class="segment-badges">
+                        <span class="badge-item">
+                            <i class="bi bi-diagram-3"></i>
+                            Frontal
+                        </span>
+                        <span class="badge-item">
+                            <i class="bi bi-person-standing"></i>
+                            Lateral
+                        </span>
+                    </div>
+                    <a href="{{ url_for('main.segment_exercises', segment_type='ankle') }}" class="segment-button">
+                        <i class="bi bi-play-circle-fill"></i>
+                        Ir a Ejercicios
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Panel de Información */
+.info-panel {
+    background: var(--biomech-glass);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    border-radius: 20px;
+    padding: 2rem;
+}
+
+.info-panel h3 {
+    color: var(--biomech-cyan);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 212, 255, 0.1);
+    border-radius: 16px;
+    padding: 1.5rem;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.info-card:hover {
+    border-color: var(--biomech-cyan);
+    transform: translateY(-5px);
+}
+
+.info-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--biomech-cyan), var(--biomech-purple));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.info-icon i {
+    font-size: 1.5rem;
+    color: white;
+}
+
+.info-card h5 {
+    color: var(--biomech-cyan);
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.info-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.info-card ul li {
+    color: var(--biomech-text-secondary);
+    padding: 0.5rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.info-card ul li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--biomech-green);
+    font-weight: bold;
+}
+
+/* Tarjetas de Segmentos */
+.segment-card {
+    background: var(--biomech-glass);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    border-radius: 20px;
+    padding: 2rem;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.segment-card:nth-child(1) { animation-delay: 0.1s; }
+.segment-card:nth-child(2) { animation-delay: 0.2s; }
+.segment-card:nth-child(3) { animation-delay: 0.3s; }
+.segment-card:nth-child(4) { animation-delay: 0.4s; }
+.segment-card:nth-child(5) { animation-delay: 0.5s; }
+
+.segment-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    border-color: var(--biomech-cyan);
+    box-shadow: 0 20px 40px rgba(0, 212, 255, 0.3);
+}
+
+.segment-icon {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    background: rgba(0, 212, 255, 0.1);
+    border: 2px solid rgba(0, 212, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.segment-card:hover .segment-icon {
+    background: rgba(0, 212, 255, 0.2);
+    border-color: var(--biomech-cyan);
+    transform: scale(1.1);
+}
+
+.segment-icon img.joint-icon {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.3));
+}
+
+.segment-content {
+    text-align: center;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.segment-content h4 {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.segment-content p {
+    color: var(--biomech-text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+    flex: 1;
+}
+
+.segment-badges {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.badge-item {
+    background: rgba(0, 212, 255, 0.1);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    color: var(--biomech-cyan);
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.segment-button {
+    background: linear-gradient(135deg, var(--biomech-cyan), var(--biomech-purple));
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.segment-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 212, 255, 0.4);
+    color: white;
+}
+
+.section-title {
+    color: var(--biomech-cyan);
+    font-size: 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .info-panel {
+        padding: 1.5rem;
+    }
+    
+    .segment-card {
+        padding: 1.5rem;
+    }
+    
+    .segment-icon {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .segment-icon img.joint-icon {
+        width: 60px;
+        height: 60px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Mostrar mensaje de funcionalidad futura
+function showComingSoon(feature) {
+    alert('⚠️ Funcionalidad futura a implementar\n\n' + feature + ' estará disponible próximamente.');
+}
+
+// Efectos de hover mejorados
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.segment-card');
+    
+    cards.forEach(card => {
+        // Efecto parallax en el icono al mover el mouse
+        card.addEventListener('mousemove', function(e) {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            const percentX = (x - centerX) / centerX;
+            const percentY = (y - centerY) / centerY;
+            
+            const icon = card.querySelector('.segment-icon');
+            if (icon) {
+                icon.style.transform = `scale(1.1) translate(${percentX * 10}px, ${percentY * 10}px)`;
+            }
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            const icon = card.querySelector('.segment-icon');
+            if (icon) {
+                icon.style.transform = '';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

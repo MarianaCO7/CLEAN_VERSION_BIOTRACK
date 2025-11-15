@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - BioTrack Analyzer</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- USAR CSS EXISTENTE -->
+    <link href="{{ url_for('static', filename='css/biomech_styles.css') }}" rel="stylesheet">
+    <!-- Responsive Fixes -->
+    <link href="{{ url_for('static', filename='css/responsive_fixes.css') }}?v=1.2" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏃‍♂️</text></svg>">
+</head>
+<body class="login-page">
+    <!-- 🌊 PARTÍCULAS DE FONDO -->
+    <div class="login-particles">
+        <div class="login-particle"></div>
+        <div class="login-particle"></div>
+        <div class="login-particle"></div>
+        <div class="login-particle"></div>
+        <div class="login-particle"></div>
+    </div>
+
+    <!-- 🪟 CONTENEDOR PRINCIPAL -->
+    <div class="login-container">
+        <!-- 🎨 CARD DE LOGIN -->
+        <div class="login-card login-shimmer">
+            <!-- 🏃‍♂️ LOGO -->
+            <div class="login-logo">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" 
+                     alt="BioTrack Logo" 
+                     class="login-logo-image">
+            </div>
+            
+            <h1 class="login-title">Bienvenido</h1>
+            <p class="login-subtitle">
+                Accede al sistema de análisis<br>
+                biomecánico
+            </p>
+
+            <!-- 🚨 MENSAJES -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="login-alert login-alert-{{ 'error' if category == 'error' or category == 'danger' else 'success' }}">
+                            <i class="bi bi-{{ 'exclamation-triangle-fill' if category == 'error' or category == 'danger' else 'check-circle-fill' }}"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- 📝 FORMULARIO -->
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                <!-- ROL -->
+                <div class="login-form-group">
+                    <label for="role" class="login-form-label">
+                        <i class="bi bi-shield-check"></i> Rol
+                    </label>
+                    <div class="login-input-group">
+                        <select 
+                            id="role" 
+                            name="role" 
+                            class="login-input login-select" 
+                            required
+                        >
+                            <option value="" disabled selected>Selecciona tu rol</option>
+                            <option value="admin" {{ 'selected' if request.form.role == 'admin' else '' }}>👤 Administrador</option>
+                            <option value="student" {{ 'selected' if request.form.role == 'student' else '' }}>🎓 Estudiante</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- USUARIO -->
+                <div class="login-form-group">
+                    <label for="username" class="login-form-label">
+                        <i class="bi bi-person-fill"></i> Usuario
+                    </label>
+                    <div class="login-input-group">
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username" 
+                            class="login-input" 
+                            placeholder="Ingresa tu usuario"
+                            required
+                            value="{{ request.form.username if request.form.username }}"
+                        >
+                        <i class="bi bi-person-fill login-input-icon"></i>
+                    </div>
+                </div>
+
+                <!-- CONTRASEÑA -->
+                <div class="login-form-group">
+                    <label for="password" class="login-form-label">
+                        <i class="bi bi-lock-fill"></i> Contraseña
+                    </label>
+                    <div class="login-input-group">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            class="login-input" 
+                            placeholder="Ingresa tu contraseña"
+                            required
+                        >
+                        <button type="button" class="password-toggle" onclick="togglePassword()">
+                            <i class="bi bi-eye-fill" id="password-icon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RECORDARME -->
+                <div class="login-form-group" style="margin-top: 8px;">
+                    <label class="login-checkbox">
+                        <input type="checkbox" name="remember" id="remember">
+                        <span>Recordarme</span>
+                    </label>
+                </div>
+
+                <!-- BOTÓN -->
+                <button type="submit" class="login-button">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    Iniciar Sesión
+                </button>
+            </form>
+
+            <!-- AYUDA -->
+            <div class="login-help">
+                <a href="#" class="login-help-link" onclick="showHelp(); return false;">
+                    <i class="bi bi-question-circle"></i>
+                    ¿Necesitas ayuda?
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔑 CREDENCIALES -->
+    <div class="login-info-panel login-credentials-panel">
+        <div class="login-panel-title">
+            <i class="bi bi-key-fill"></i>
+            Credenciales de prueba:
+        </div>
+        <div class="login-panel-item"><strong>Admin:</strong> admin / test123 / <span style="color: var(--biomech-purple);">Administrador</span></div>
+        <div class="login-panel-item"><strong>Estudiante:</strong> carlos.mendez / test123 / <span style="color: var(--biomech-green);">Estudiante</span></div>
+        <div class="login-panel-item"><strong>Estudiante:</strong> ana.lopez / test123 / <span style="color: var(--biomech-green);">Estudiante</span></div>
+        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0, 212, 255, 0.1); font-size: 13px; color: var(--biomech-text-secondary);">
+            <i class="bi bi-info-circle"></i> Debes seleccionar el rol correcto para cada usuario
+        </div>
+    </div>
+
+    <!-- 📱 INFO DEL SISTEMA -->
+    <div class="login-info-panel login-system-panel">
+        <div class="login-panel-title">
+            <i class="bi bi-info-circle-fill"></i>
+            BioTrack System
+        </div>
+        <p style="color: var(--biomech-text-secondary); font-size: 14px; margin-bottom: 16px;">
+            Plataforma educativa para análisis biomecánico usando tecnología MediaPipe.
+        </p>
+        <div style="color: var(--biomech-text-secondary); font-size: 14px;">
+            <div style="margin: 8px 0;"><i class="bi bi-check-circle-fill" style="color: var(--biomech-cyan);"></i> Análisis en tiempo real</div>
+            <div style="margin: 8px 0;"><i class="bi bi-camera-fill" style="color: var(--biomech-cyan);"></i> Detección 2D</div>
+            <div style="margin: 8px 0;"><i class="bi bi-mortarboard-fill" style="color: var(--biomech-cyan);"></i> Educativo</div>
+        </div>
+    </div>
+
+    <style>
+        .help-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .help-modal-content {
+            background: var(--biomech-dark-800);
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--biomech-border);
+        }
+
+        .help-modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            font-size: 32px;
+            color: var(--biomech-text-secondary);
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .help-modal-close:hover {
+            color: var(--biomech-cyan);
+        }
+
+        .help-modal-content h2 {
+            color: var(--biomech-cyan);
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .help-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--biomech-dark-900);
+            border-radius: 12px;
+            border-left: 4px solid var(--biomech-cyan);
+        }
+
+        .help-section h3 {
+            color: var(--biomech-cyan);
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .help-section p, .help-section ul {
+            color: var(--biomech-text-primary);
+            line-height: 1.6;
+            margin: 8px 0;
+        }
+
+        .help-section ul {
+            padding-left: 20px;
+        }
+
+        .help-section li {
+            margin: 6px 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const passwordIcon = document.getElementById('password-icon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordIcon.className = 'bi bi-eye-slash-fill';
+            } else {
+                passwordInput.type = 'password';
+                passwordIcon.className = 'bi bi-eye-fill';
+            }
+        }
+
+        function showHelp() {
+            const modal = document.createElement('div');
+            modal.className = 'help-modal';
+            modal.innerHTML = `
+                <div class="help-modal-content">
+                    <button class="help-modal-close" onclick="this.closest('.help-modal').remove()">&times;</button>
+                    <h2><i class="bi bi-life-preserver"></i> Centro de Ayuda</h2>
+                    
+                    <div class="help-section">
+                        <h3><i class="bi bi-info-circle"></i> ¿Qué es BioTrack?</h3>
+                        <p>Plataforma educativa para análisis de movimiento humano usando inteligencia artificial.</p>
+                    </div>
+                    
+                    <div class="help-section">
+                        <h3><i class="bi bi-key"></i> ¿Necesitas Acceso?</h3>
+                        <p>Utiliza las credenciales que el administrador (docente) te proporcionó.</p>
+                        <p>Si aún no tienes cuenta, contacta al equipo de desarrollo:</p>
+                        <p><strong>Email:</strong> com0025243@est.univalle.edu</p>
+                    </div>
+                    
+                    <div class="help-section">
+                        <h3><i class="bi bi-gear"></i> Requisitos</h3>
+                        <ul>
+                            <li>Cámara web</li>
+                            <li>Chrome o Firefox</li>
+                            <li>Buena iluminación</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.style.display = 'flex';
+            
+            // Cerrar al hacer clic fuera del modal
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const usernameInput = document.getElementById('username');
+            if (usernameInput && !usernameInput.value) {
+                setTimeout(() => usernameInput.focus(), 500);
+            }
+        });
+    </script>
+</body>
+</html>

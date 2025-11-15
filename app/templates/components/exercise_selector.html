@@ -1,0 +1,803 @@
+{% extends "base.html" %}
+
+{% block title %}Ejercicios de {{ segment_name }} - BioTrack{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- 🎯 HEADER DEL SEGMENTO -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="segment-header">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="segment-icon-large {{ segment_type }}">
+                            <img src="{{ url_for('static', filename='images/joints/' + segment_icon) }}" 
+                                 alt="{{ segment_name }}" 
+                                 class="joint-icon-large">
+                        </div>
+                        <div>
+                            <h1 class="segment-title">{{ segment_name }}</h1>
+                            <p class="segment-description">{{ segment_description }}</p>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('main.segments') }}" class="btn-back">
+                        <i class="bi bi-arrow-left"></i>
+                        Volver a Segmentos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📋 INFORMACIÓN Y PREPARACIÓN -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="preparation-panel">
+                <h3>
+                    <i class="bi bi-clipboard-check"></i>
+                    Preparación para el Análisis
+                </h3>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                        <div class="prep-card">
+                            <div class="prep-icon">
+                                <i class="bi bi-camera-video"></i>
+                            </div>
+                            <div class="prep-content">
+                                <h5>Configuración de Cámara</h5>
+                                <ul>
+                                    <li>Coloca la cámara a <strong>2-3 metros</strong> de distancia</li>
+                                    <li>Altura recomendada: <strong>a nivel del pecho</strong></li>
+                                    <li>Asegúrate de tener <strong>buena iluminación</strong></li>
+                                    <li>Fondo despejado y sin obstáculos</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="prep-card">
+                            <div class="prep-icon">
+                                <i class="bi bi-person-check"></i>
+                            </div>
+                            <div class="prep-content">
+                                <h5>Recomendaciones Importantes</h5>
+                                <ul>
+                                    <li>Usa <strong>ropa ajustada</strong> que permita ver las articulaciones</li>
+                                    <li>Realiza un <strong>calentamiento previo</strong> de 5 minutos</li>
+                                    <li>Mantente dentro del <strong>campo de visión</strong></li>
+                                    <li>Detente si sientes <strong>dolor o molestia</strong></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🏋️ SELECTOR DE EJERCICIOS -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2 class="exercises-title">
+                <i class="bi bi-list-check"></i>
+                Selecciona un Ejercicio
+            </h2>
+            <p class="exercises-subtitle">
+                Elige el movimiento que deseas analizar. Cada ejercicio incluye instrucciones y demostración.
+            </p>
+        </div>
+    </div>
+
+    <!-- GRID DE EJERCICIOS -->
+    <div class="row g-4">
+        {% for exercise in exercises %}
+        <div class="col-lg-4 col-md-6">
+            <div class="exercise-card" data-exercise="{{ exercise.key }}">
+                <!-- Header -->
+                <div class="exercise-header">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4 class="exercise-name">{{ exercise.name }}</h4>
+                            <p class="exercise-view">
+                                <i class="bi bi-{{ exercise.view_icon }}"></i>
+                                Vista {{ exercise.view }}
+                            </p>
+                        </div>
+                        <span class="difficulty-badge difficulty-{{ exercise.difficulty }}">
+                            {{ exercise.difficulty_label }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Video Demo -->
+                {% if exercise.has_video %}
+                <div class="exercise-video" onclick="openVideoModal('{{ segment_type }}', '{{ exercise.key }}')">
+                    <div class="video-thumbnail">
+                        <div class="video-overlay">
+                            <i class="bi bi-play-circle-fill"></i>
+                            <span>Ver Demostración</span>
+                        </div>
+                        <div class="video-duration">
+                            <i class="bi bi-clock"></i>
+                            {{ exercise.duration }}s
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Detalles -->
+                <div class="exercise-body">
+                    <div class="exercise-details">
+                        <div class="detail-row">
+                            <i class="bi bi-arrows-angle-expand"></i>
+                            <span>ROM: {{ exercise.rom_range }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <i class="bi bi-arrow-repeat"></i>
+                            <span>Repeticiones: {{ exercise.repetitions }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <i class="bi bi-speedometer2"></i>
+                            <span>Velocidad: {{ exercise.speed }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Instrucciones -->
+                    <div class="exercise-instructions">
+                        <h6>
+                            <i class="bi bi-info-circle"></i>
+                            Instrucciones
+                        </h6>
+                        <p>{{ exercise.instructions }}</p>
+                    </div>
+
+                    {% if exercise.warning %}
+                    <div class="exercise-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <span>{{ exercise.warning }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Footer con botón -->
+                <div class="exercise-footer">
+                    <a href="#" 
+                       class="btn-start-exercise" 
+                       onclick="showComingSoon('Análisis de {{ exercise.name }}'); return false;">
+                        <i class="bi bi-play-fill"></i>
+                        Iniciar Análisis
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- 🎬 MODAL DE VIDEO -->
+<div id="videoModal" class="video-modal" onclick="closeVideoModal(event)">
+    <div class="video-modal-content">
+        <button class="video-close-btn" onclick="closeVideoModal(event)">
+            <i class="bi bi-x-circle-fill"></i>
+        </button>
+        <div class="video-wrapper">
+            <video id="modalVideo" controls autoplay>
+                <source id="modalVideoSource" src="" type="video/mp4">
+                Tu navegador no soporta la reproducción de video.
+            </video>
+        </div>
+        <div class="video-info">
+            <h3 id="videoTitle">Demostración del Ejercicio</h3>
+            <p id="videoDescription">Observa la técnica correcta para realizar este movimiento</p>
+        </div>
+    </div>
+</div>
+
+<style>
+/* 🎨 ESTILOS DEL SELECTOR DE EJERCICIOS */
+
+/* Header del Segmento */
+.segment-header {
+    background: var(--biomech-glass);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    border-radius: 20px;
+    padding: 2rem;
+}
+
+.segment-icon-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 16px;
+    background: rgba(0, 212, 255, 0.1);
+    border: 2px solid rgba(0, 212, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.segment-icon-large img.joint-icon-large {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.3));
+}
+
+.segment-title {
+    color: white;
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(135deg, var(--biomech-cyan), var(--biomech-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.segment-description {
+    color: var(--biomech-text-secondary);
+    margin: 0.5rem 0 0 0;
+    font-size: 1rem;
+}
+
+.btn-back {
+    background: rgba(0, 212, 255, 0.1);
+    border: 1px solid var(--biomech-cyan);
+    color: var(--biomech-cyan);
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+    background: rgba(0, 212, 255, 0.2);
+    transform: translateX(-5px);
+    color: var(--biomech-cyan);
+}
+
+/* Panel de Preparación */
+.preparation-panel {
+    background: var(--biomech-glass);
+    border: 1px solid rgba(138, 43, 226, 0.2);
+    border-radius: 20px;
+    padding: 2rem;
+}
+
+.preparation-panel h3 {
+    color: var(--biomech-purple);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.prep-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(138, 43, 226, 0.2);
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.prep-card:hover {
+    border-color: var(--biomech-purple);
+    transform: translateY(-3px);
+}
+
+.prep-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--biomech-purple), var(--biomech-cyan));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.prep-icon i {
+    font-size: 1.5rem;
+    color: white;
+}
+
+.prep-content h5 {
+    color: var(--biomech-cyan);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.prep-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.prep-content ul li {
+    color: var(--biomech-text-secondary);
+    padding: 0.4rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+    font-size: 0.9rem;
+}
+
+.prep-content ul li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--biomech-green);
+    font-weight: bold;
+}
+
+.prep-content strong {
+    color: white;
+}
+
+/* Título de Ejercicios */
+.exercises-title {
+    color: var(--biomech-cyan);
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.exercises-subtitle {
+    color: var(--biomech-text-secondary);
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* Tarjetas de Ejercicios */
+.exercise-card {
+    background: var(--biomech-glass);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.exercise-card:nth-child(1) { animation-delay: 0.1s; }
+.exercise-card:nth-child(2) { animation-delay: 0.2s; }
+.exercise-card:nth-child(3) { animation-delay: 0.3s; }
+.exercise-card:nth-child(4) { animation-delay: 0.4s; }
+.exercise-card:nth-child(5) { animation-delay: 0.5s; }
+.exercise-card:nth-child(6) { animation-delay: 0.6s; }
+
+.exercise-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--biomech-cyan);
+    box-shadow: 0 15px 40px rgba(0, 212, 255, 0.3);
+}
+
+.exercise-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+}
+
+.exercise-name {
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem 0;
+}
+
+.exercise-view {
+    color: var(--biomech-text-secondary);
+    font-size: 0.9rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.difficulty-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.difficulty-easy {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.difficulty-medium {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.difficulty-hard {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+/* Video Thumbnail */
+.exercise-video {
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.video-thumbnail {
+    height: 200px;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 212, 255, 0.1));
+    position: relative;
+    overflow: hidden;
+}
+
+.video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.exercise-video:hover .video-overlay {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.video-overlay i {
+    font-size: 3.5rem;
+    color: var(--biomech-cyan);
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.exercise-video:hover .video-overlay i {
+    transform: scale(1.2);
+    color: white;
+}
+
+.video-overlay span {
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.video-duration {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    color: white;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    z-index: 2;
+}
+
+/* Cuerpo del Ejercicio */
+.exercise-body {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.exercise-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.detail-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--biomech-text-secondary);
+    font-size: 0.9rem;
+}
+
+.detail-row i {
+    color: var(--biomech-cyan);
+    width: 18px;
+}
+
+.detail-row span {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.exercise-instructions {
+    background: rgba(0, 212, 255, 0.05);
+    border: 1px solid rgba(0, 212, 255, 0.1);
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.exercise-instructions h6 {
+    color: var(--biomech-cyan);
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.exercise-instructions p {
+    color: var(--biomech-text-secondary);
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.exercise-warning {
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 8px;
+    padding: 0.75rem;
+    color: #fbbf24;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.exercise-warning i {
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+/* Footer del Ejercicio */
+.exercise-footer {
+    padding: 1.5rem;
+    border-top: 1px solid rgba(0, 212, 255, 0.1);
+}
+
+.btn-start-exercise {
+    background: linear-gradient(135deg, var(--biomech-cyan), var(--biomech-purple));
+    color: white;
+    padding: 0.9rem 1.5rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.btn-start-exercise:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
+    color: white;
+}
+
+/* Modal de Video */
+.video-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.video-modal.active {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.video-modal-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90vh;
+    animation: scaleIn 0.3s ease;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.video-close-btn {
+    position: absolute;
+    top: -50px;
+    right: 0;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10000;
+}
+
+.video-close-btn:hover {
+    color: var(--biomech-cyan);
+    transform: scale(1.1);
+}
+
+.video-wrapper {
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0, 212, 255, 0.3);
+}
+
+.video-wrapper video {
+    width: 100%;
+    max-height: 70vh;
+    display: block;
+}
+
+.video-info {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: white;
+}
+
+.video-info h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--biomech-cyan);
+}
+
+.video-info p {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .segment-header {
+        padding: 1.5rem;
+    }
+    
+    .segment-icon-large {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .segment-icon-large img.joint-icon-large {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .segment-title {
+        font-size: 1.5rem;
+    }
+    
+    .preparation-panel {
+        padding: 1.5rem;
+    }
+    
+    .prep-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .prep-icon {
+        margin: 0 auto;
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Mostrar mensaje de funcionalidad futura
+function showComingSoon(feature) {
+    alert('⚠️ Funcionalidad futura a implementar\n\n' + feature + ' estará disponible próximamente.');
+}
+
+// Sistema de Video Modal
+function openVideoModal(segmentType, exerciseKey) {
+    const modal = document.getElementById('videoModal');
+    const video = document.getElementById('modalVideo');
+    const videoSource = document.getElementById('modalVideoSource');
+    const videoTitle = document.getElementById('videoTitle');
+    const videoDescription = document.getElementById('videoDescription');
+    
+    // Construir ruta del video
+    const videoPath = `/static/videos/exercises/${segmentType}_${exerciseKey}.mp4`;
+    
+    // Actualizar información
+    videoTitle.textContent = `Demostración: ${exerciseKey.replace('_', ' ')}`;
+    videoDescription.textContent = 'Observa la técnica correcta para realizar este movimiento';
+    
+    // Cargar video
+    videoSource.src = videoPath;
+    video.load();
+    
+    // Mostrar modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    console.log(`📹 Abriendo video: ${videoPath}`);
+}
+
+function closeVideoModal(event) {
+    if (event.target.id === 'videoModal' || event.target.closest('.video-close-btn')) {
+        const modal = document.getElementById('videoModal');
+        const video = document.getElementById('modalVideo');
+        
+        video.pause();
+        video.currentTime = 0;
+        
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        
+        console.log('📹 Video cerrado');
+    }
+}
+
+// Cerrar modal con ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('videoModal');
+        if (modal.classList.contains('active')) {
+            closeVideoModal({ target: modal });
+        }
+    }
+});
+
+// Prevenir que el click en el video cierre el modal
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('modalVideo');
+    if (video) {
+        video.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+    
+    console.log('✅ Sistema de selector de ejercicios cargado');
+});
+</script>
+{% endblock %}
