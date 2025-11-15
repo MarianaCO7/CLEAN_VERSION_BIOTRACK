@@ -1,0 +1,469 @@
+{% extends "base.html" %}
+
+{% block title %}{{ exercise_name }} - Análisis en Vivo - BioTrack{% endblock %}
+
+{% block content %}
+<div class="live-analysis-container fade-in">
+    <!-- 📊 GRID PRINCIPAL: VIDEO + PANEL LATERAL -->
+    <div class="row g-4">
+        <!-- 🎥 COLUMNA DE VIDEO (70%) -->
+        <div class="col-lg-8">
+            <div class="video-section">
+                <!-- Header del ejercicio -->
+                <div class="exercise-header-bar">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0">
+                                <i class="bi bi-activity"></i>
+                                {{ exercise_name }}
+                            </h3>
+                            <small class="text-muted">{{ exercise_description }}</small>
+                        </div>
+                        <div class="view-badge">
+                            <i class="bi bi-camera"></i>
+                            Vista: <strong>{{ camera_view_label }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Feed -->
+                <div class="video-wrapper">
+                    <img id="videoFeed" 
+                         src="{{ url_for('api.video_feed') }}" 
+                         alt="Video en vivo"
+                         class="video-stream">
+                    
+                    <!-- Overlay de carga -->
+                    <div id="loadingOverlay" class="video-overlay loading">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2">Iniciando cámara...</p>
+                    </div>
+                </div>
+
+                <!-- Controles de video -->
+                <div class="video-controls mt-3">
+                    <button id="startBtn" class="btn btn-success btn-lg" onclick="startAnalysis()">
+                        <i class="bi bi-play-fill"></i> Iniciar Análisis
+                    </button>
+                    <button id="stopBtn" class="btn btn-danger btn-lg" onclick="stopAnalysis()" disabled>
+                        <i class="bi bi-stop-fill"></i> Detener
+                    </button>
+                    <button id="resetBtn" class="btn btn-warning btn-lg" onclick="resetROM()">
+                        <i class="bi bi-arrow-clockwise"></i> Reiniciar ROM
+                    </button>
+                    <a href="{{ url_for('main.segment_exercises', segment_type=segment_type) }}" 
+                       class="btn btn-secondary btn-lg">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 📋 COLUMNA DE INFORMACIÓN (30%) -->
+        <div class="col-lg-4">
+            <!-- Card de datos en tiempo real -->
+            <div class="info-card mb-3">
+                <h4 class="info-card-title">
+                    <i class="bi bi-graph-up"></i>
+                    Datos en Tiempo Real
+                </h4>
+                
+                <div class="metrics-display">
+                    <!-- Ángulo actual -->
+                    <div class="metric-item primary">
+                        <div class="metric-label">Ángulo Actual</div>
+                        <div class="metric-value" id="currentAngle">0°</div>
+                    </div>
+                    
+                    <!-- ROM Máximo -->
+                    <div class="metric-item success">
+                        <div class="metric-label">ROM Máximo</div>
+                        <div class="metric-value" id="maxROM">0°</div>
+                    </div>
+                    
+                    <!-- Estado de postura -->
+                    <div class="metric-item info">
+                        <div class="metric-label">Estado de Postura</div>
+                        <div class="metric-status" id="postureStatus">
+                            <i class="bi bi-hourglass-split"></i>
+                            <span>Detectando...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- FPS (opcional, para debug) -->
+                    <div class="metric-item secondary">
+                        <div class="metric-label">FPS</div>
+                        <div class="metric-value small" id="fpsDisplay">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de instrucciones -->
+            <div class="info-card mb-3">
+                <h4 class="info-card-title">
+                    <i class="bi bi-list-check"></i>
+                    Instrucciones
+                </h4>
+                <ol class="instructions-list">
+                    {% for instruction in instructions %}
+                    <li>{{ instruction }}</li>
+                    {% endfor %}
+                </ol>
+            </div>
+
+            <!-- Card de configuración -->
+            <div class="info-card mb-3">
+                <h4 class="info-card-title">
+                    <i class="bi bi-gear"></i>
+                    Configuración de Cámara
+                </h4>
+                <ul class="setup-list">
+                    {% for setup_item in setup %}
+                    <li>
+                        <i class="bi bi-check-circle"></i>
+                        {{ setup_item }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Gráfico de ROM (opcional - implementar después) -->
+            <div class="info-card">
+                <h4 class="info-card-title">
+                    <i class="bi bi-bar-chart-line"></i>
+                    Progreso ROM
+                </h4>
+                <div class="rom-chart-container">
+                    <canvas id="romChart" width="300" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🎉 MODAL DE RESULTADOS -->
+<div id="resultsModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-trophy"></i>
+                    Resultados del Análisis
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="results-summary">
+                    <div class="result-item">
+                        <span class="result-label">Ejercicio:</span>
+                        <span class="result-value">{{ exercise_name }}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">ROM Máximo Alcanzado:</span>
+                        <span id="finalROM" class="result-value highlight">0°</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Clasificación:</span>
+                        <span id="romClassification" class="result-value badge">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Rango Esperado:</span>
+                        <span class="result-value">{{ min_angle }}° - {{ max_angle }}°</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="saveResults()">
+                    <i class="bi bi-save"></i> Guardar en Historial
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+/* 🎨 ESTILOS DEL ANÁLISIS EN VIVO */
+
+.live-analysis-container {
+    padding: 20px 0;
+}
+
+/* Header del ejercicio */
+.exercise-header-bar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 10px 10px 0 0;
+    margin-bottom: -1px;
+}
+
+.view-badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+/* Video Section */
+.video-section {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.video-wrapper {
+    position: relative;
+    background: #000;
+    min-height: 480px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-stream {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    z-index: 10;
+}
+
+.video-overlay.loading {
+    display: flex;
+}
+
+.video-overlay.hidden {
+    display: none;
+}
+
+.video-controls {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 0 0 10px 10px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Cards de información */
+.info-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.info-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-card-title i {
+    color: #667eea;
+}
+
+/* Métricas */
+.metrics-display {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.metric-item {
+    text-align: center;
+    padding: 15px;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.metric-item.primary {
+    background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+    border: 2px solid #667eea;
+}
+
+.metric-item.success {
+    background: linear-gradient(135deg, #11998e20 0%, #38ef7d20 100%);
+    border: 2px solid #11998e;
+}
+
+.metric-item.info {
+    grid-column: 1 / -1;
+    background: #e3f2fd;
+    border: 2px solid #2196f3;
+}
+
+.metric-item.secondary {
+    grid-column: 1 / -1;
+}
+
+.metric-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.metric-value.small {
+    font-size: 1.2rem;
+}
+
+.metric-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.metric-status i {
+    font-size: 1.3rem;
+}
+
+.metric-status.valid {
+    color: #11998e;
+}
+
+.metric-status.invalid {
+    color: #f39c12;
+}
+
+/* Listas */
+.instructions-list {
+    padding-left: 20px;
+    margin: 0;
+}
+
+.instructions-list li {
+    margin-bottom: 10px;
+    line-height: 1.6;
+    color: #555;
+}
+
+.setup-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.setup-list li {
+    padding: 8px 0;
+    color: #555;
+    display: flex;
+    align-items: start;
+    gap: 8px;
+}
+
+.setup-list li i {
+    color: #11998e;
+    margin-top: 3px;
+}
+
+/* Gráfico */
+.rom-chart-container {
+    position: relative;
+    height: 200px;
+}
+
+/* Modal de resultados */
+.results-summary {
+    padding: 20px 0;
+}
+
+.result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.result-item:last-child {
+    border-bottom: none;
+}
+
+.result-label {
+    font-weight: 500;
+    color: #666;
+}
+
+.result-value {
+    font-weight: 600;
+    color: #333;
+}
+
+.result-value.highlight {
+    font-size: 1.5rem;
+    color: #667eea;
+}
+
+.result-value.badge {
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .metrics-display {
+        grid-template-columns: 1fr;
+    }
+    
+    .metric-item.info,
+    .metric-item.secondary {
+        grid-column: 1;
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<!-- Chart.js para gráficos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- Configuración del ejercicio -->
+<script>
+    const EXERCISE_CONFIG = {
+        segment_type: "{{ segment_type }}",
+        exercise_key: "{{ exercise_key }}",
+        camera_view: "{{ camera_view }}",
+        min_angle: {{ min_angle }},
+        max_angle: {{ max_angle }}
+    };
+</script>
+
+<!-- Script principal de análisis -->
+<script src="{{ url_for('static', filename='js/live_analysis.js') }}"></script>
+{% endblock %}

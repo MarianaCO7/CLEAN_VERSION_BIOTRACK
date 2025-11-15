@@ -19,6 +19,7 @@ from flask import (
     flash, session, current_app
 )
 from app.routes.auth import login_required, admin_required
+from hardware.camera_manager import camera_manager, check_camera_availability
 
 # Crear blueprint
 main_bp = Blueprint('main', __name__)
@@ -344,6 +345,143 @@ def segment_exercises(segment_type):
         segment_description=segment['description'],
         segment_icon=segment['icon'],
         exercises=segment['exercises']
+    )
+
+
+# ============================================================================
+# ANÁLISIS EN VIVO (NUEVO)
+# ============================================================================
+
+@main_bp.route('/segments/<segment_type>/exercises/<exercise_key>')
+@login_required
+def live_analysis(segment_type, exercise_key):
+    """
+    Página de análisis en vivo para ejercicios específicos
+    
+    URL ejemplos:
+    - /segments/shoulder/exercises/flexion (Vista perfil)
+    - /segments/shoulder/exercises/abduction (Vista frontal)
+    - /segments/elbow/exercises/flexion
+    - /segments/hip/exercises/flexion
+    - /segments/knee/exercises/flexion
+    - /segments/ankle/exercises/dorsiflexion
+    """
+    
+    # Verificar disponibilidad de cámara ANTES de renderizar
+    available, message = check_camera_availability()
+    if not available:
+        flash(message, 'warning')
+        return redirect(url_for('main.segment_exercises', segment_type=segment_type))
+    
+    # Configuración completa de ejercicios
+    exercises_db = {
+        'shoulder': {
+            'flexion': {
+                'name': 'Flexión de Hombro',
+                'description': 'Movimiento del brazo hacia adelante y arriba desde posición neutra',
+                'camera_view': 'profile',
+                'camera_view_label': 'Perfil',
+                'min_angle': 0,
+                'max_angle': 180,
+                'analyzer_type': 'shoulder_profile',
+                'analyzer_class': 'ShoulderProfileAnalyzer',
+                'instructions': [
+                    'Colócate de PERFIL a la cámara (lado derecho o izquierdo)',
+                    'Brazo relajado junto al cuerpo (posición inicial 0°)',
+                    'Levanta el brazo hacia ADELANTE lentamente',
+                    'Alcanza la máxima altura posible (objetivo: 180°)',
+                    'Mantén la posición máxima 2-3 segundos',
+                    'Evita inclinar el tronco hacia adelante'
+                ],
+                'setup': [
+                    'Cámara a altura del pecho',
+                    'Distancia: 2-3 metros',
+                    'Fondo despejado y buena iluminación',
+                    'Ropa ajustada que permita ver contorno del brazo'
+                ]
+            },
+            'abduction': {
+                'name': 'Abducción de Hombro',
+                'description': 'Movimiento bilateral de los brazos hacia los lados',
+                'camera_view': 'frontal',
+                'camera_view_label': 'Frontal',
+                'min_angle': 0,
+                'max_angle': 180,
+                'analyzer_type': 'shoulder_frontal',
+                'analyzer_class': 'ShoulderFrontalAnalyzer',
+                'instructions': [
+                    'Colócate de FRENTE a la cámara',
+                    'Brazos relajados a los lados del cuerpo (0°)',
+                    'Levanta AMBOS brazos SIMULTÁNEAMENTE hacia los lados',
+                    'Alcanza la máxima altura (objetivo: 180° sobre la cabeza)',
+                    'Mantén simetría entre ambos brazos',
+                    'Mantén la posición máxima 2-3 segundos'
+                ],
+                'setup': [
+                    'Cámara a altura del pecho',
+                    'Distancia: 2-3 metros',
+                    'Centrado en el frame',
+                    'Fondo despejado y buena iluminación'
+                ]
+            }
+        },
+        # Placeholders para otros segmentos (implementar después)
+        'elbow': {
+            'flexion': {
+                'name': 'Flexión de Codo',
+                'description': 'Movimiento de cierre del antebrazo hacia el brazo',
+                'camera_view': 'profile',
+                'camera_view_label': 'Perfil',
+                'min_angle': 0,
+                'max_angle': 150,
+                'analyzer_type': 'elbow_profile',
+                'analyzer_class': 'ElbowProfileAnalyzer',
+                'instructions': [
+                    'Colócate de PERFIL a la cámara',
+                    'Brazo extendido junto al cuerpo (0°)',
+                    'Flexiona el codo acercando la mano al hombro',
+                    'Alcanza la flexión máxima (objetivo: 150°)',
+                    'Mantén el hombro estable (no lo muevas)'
+                ],
+                'setup': [
+                    'Cámara a altura del pecho',
+                    'Distancia: 2 metros',
+                    'Fondo despejado'
+                ]
+            }
+        }
+    }
+    
+    # Validar que exista el segmento
+    if segment_type not in exercises_db:
+        flash(f'Segmento "{segment_type}" no encontrado', 'error')
+        return redirect(url_for('main.segments'))
+    
+    # Validar que exista el ejercicio
+    if exercise_key not in exercises_db[segment_type]:
+        flash(f'Ejercicio "{exercise_key}" no encontrado en {segment_type}', 'error')
+        return redirect(url_for('main.segment_exercises', segment_type=segment_type))
+    
+    # Obtener configuración del ejercicio
+    exercise = exercises_db[segment_type][exercise_key]
+    
+    # Guardar en sesión para uso en video_feed
+    session['current_segment'] = segment_type
+    session['current_exercise'] = exercise_key
+    session['analyzer_type'] = exercise['analyzer_type']
+    
+    return render_template(
+        'measurement/live_analysis.html',
+        segment_type=segment_type,
+        exercise_key=exercise_key,
+        exercise_name=exercise['name'],
+        exercise_description=exercise['description'],
+        camera_view=exercise['camera_view'],
+        camera_view_label=exercise['camera_view_label'],
+        min_angle=exercise['min_angle'],
+        max_angle=exercise['max_angle'],
+        instructions=exercise['instructions'],
+        setup=exercise['setup']
     )
 
 

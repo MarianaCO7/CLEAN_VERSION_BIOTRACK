@@ -161,9 +161,8 @@
 
                 <!-- Footer con botón -->
                 <div class="exercise-footer">
-                    <a href="#" 
-                       class="btn-start-exercise" 
-                       onclick="showComingSoon('Análisis de {{ exercise.name }}'); return false;">
+                    <a href="{{ url_for('main.live_analysis', segment_type=segment_type, exercise_key=exercise.key) }}" 
+                       class="btn-start-exercise">
                         <i class="bi bi-play-fill"></i>
                         Iniciar Análisis
                     </a>
