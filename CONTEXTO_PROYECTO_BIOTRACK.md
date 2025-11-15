@@ -112,6 +112,336 @@ self.pose = mp_pose.Pose(
 
 ---
 
+## 🧵 ARQUITECTURA DE THREADING Y GESTIÓN DE HILOS
+
+### Estrategia General: Threading Selectivo y Controlado
+
+Para este proyecto, **NO necesitamos threading complejo**. La estrategia es usar threads de manera **selectiva y específica** para operaciones que bloquean sin afectar el procesamiento principal.
+
+### ⚡ DECISIÓN CLAVE: MÁXIMO 4-5 THREADS ACTIVOS
+
+**Razón**: El i7-14650HX tiene 16 núcleos (6P+8E), pero:
+- MediaPipe Pose ya usa multithreading interno (3-4 threads)
+- OpenCV ya tiene paralelización interna
+- **Más threads ≠ Más velocidad** (puede empeorar por context switching)
+
+---
+
+### 📋 THREADS DEL SISTEMA (Total: 4 threads principales)
+
+#### **Thread 1: MAIN (Análisis de Video)** 🎥
+```python
+# Thread principal - NO BLOQUEANTE
+while True:
+    ret, frame = cap.read()
+    results = pose.process(frame)      # MediaPipe (usa sus propios threads)
+    angles = calculate_angles(results)
+    validate_posture(results)          # Genera eventos de voz
+    render_display(frame, angles)
+    cv2.imshow('BIOTRACK', frame)
+```
+
+**Responsabilidades**:
+- Captura de frames
+- Procesamiento con MediaPipe
+- Cálculo de ángulos
+- Renderizado visual
+- Detección de eventos (postura, ROM, etc.)
+
+**Prioridad**: HIGHEST (Real-time)
+**FPS objetivo**: 45-60
+**NO debe bloquearse NUNCA**
+
+---
+
+#### **Thread 2: VOICE (Text-to-Speech)** 🎤
+```python
+# Thread daemon independiente
+class VoiceThread(threading.Thread):
+    def __init__(self, message_queue):
+        super().__init__(daemon=True)
+        self.queue = message_queue
+        self.tts_engine = pyttsx3.init()
+        
+    def run(self):
+        while True:
+            if self.queue.should_speak_now():
+                message = self.queue.get_next_message()
+                if message:
+                    self.tts_engine.say(message)
+                    self.tts_engine.runAndWait()  # BLOCKING (solo en este thread)
+            time.sleep(0.5)  # Polling cada 500ms
+```
+
+**Responsabilidades**:
+- Reproducir mensajes de voz
+- Gestionar cola de mensajes
+- Controlar throttling (mín 3s entre mensajes)
+
+**Prioridad**: LOW (puede esperar)
+**Daemon**: TRUE (muere con el programa)
+**Bloqueos**: Permitidos (no afecta main thread)
+
+---
+
+#### **Thread 3: ESP32 SERIAL (Comunicación con Hardware)** 🔧
+```python
+# Thread para comunicación serial USB
+class ESP32SerialThread(threading.Thread):
+    def __init__(self, port, baudrate=115200):
+        super().__init__(daemon=True)
+        self.serial = serial.Serial(port, baudrate)
+        self.command_queue = queue.Queue()
+        
+    def run(self):
+        while True:
+            if not self.command_queue.empty():
+                command = self.command_queue.get()
+                self.serial.write(command.encode())
+                response = self.serial.readline()
+                # Procesar respuesta
+            time.sleep(0.1)  # Polling cada 100ms
+```
+
+**Responsabilidades**:
+- Enviar comandos al ESP32 (ajustar altura de cámara)
+- Recibir confirmaciones del ESP32
+- Gestionar cola de comandos
+
+**Prioridad**: MEDIUM
+**Daemon**: TRUE
+**Uso**: Solo cuando se ajusta altura (no durante análisis activo)
+
+---
+
+#### **Thread 4: FLASK SERVER (Solo en modo web)** 🌐
+```python
+# Thread automático de Flask
+if __name__ == '__main__':
+    app.run(
+        host='0.0.0.0',
+        port=5000,
+        threaded=True,     # Flask usa ThreadingMixIn
+        debug=False        # NO usar debug=True (duplica threads)
+    )
+```
+
+**Responsabilidades**:
+- Servir requests HTTP
+- WebSocket/AJAX para comunicación con frontend
+- Streaming de video (si aplica)
+
+**Prioridad**: MEDIUM
+**Threads internos**: Flask crea 1 thread por request HTTP
+**Control**: Limitado (Flask lo maneja internamente)
+
+---
+
+### 🚫 THREADS QUE **NO** USAREMOS
+
+#### ❌ Thread separado para captura de video
+**Razón**: `cap.read()` es muy rápido (5-10ms) y OpenCV ya está optimizado. Agregar thread aquí añade complejidad sin beneficio.
+
+#### ❌ Thread separado para renderizado
+**Razón**: `cv2.imshow()` es nativo y usa buffers internos. No necesita thread separado.
+
+#### ❌ Thread pool para procesamiento paralelo de frames
+**Razón**: Analizamos 1 persona con 1 cámara en tiempo real. No hay paralelización posible de frames individuales.
+
+#### ❌ Thread para cálculos de ángulos
+**Razón**: Los cálculos matemáticos (arctan2, dot product) toman <1ms. No justifica overhead de threading.
+
+---
+
+### 🔒 SINCRONIZACIÓN Y COMUNICACIÓN ENTRE THREADS
+
+#### **1. Main → Voice (Productor → Consumidor)**
+```python
+# Thread-safe queue
+from voice_system.message_queue import VoiceMessageQueue
+
+# En Main Thread
+voice_queue = VoiceMessageQueue(min_interval=3.0)
+voice_queue.add_message("Levanta el brazo más alto", priority='NORMAL')
+
+# Voice Thread consume automáticamente
+```
+
+**Mecanismo**: Cola thread-safe (`collections.deque` con locks internos)
+**Sincronización**: Lock-free (deque es thread-safe para append/pop)
+
+#### **2. Main → ESP32 (Comandos ocasionales)**
+```python
+# Thread-safe queue
+import queue
+
+esp32_queue = queue.Queue()  # Thread-safe nativo de Python
+
+# En Main Thread
+esp32_queue.put("HEIGHT:100")
+
+# ESP32 Thread consume
+command = esp32_queue.get()  # Blocking (pero en thread separado)
+```
+
+**Mecanismo**: `queue.Queue()` (thread-safe nativo)
+**Sincronización**: Locks internos de Queue
+
+#### **3. Flask ↔ Main (Comunicación web)**
+```python
+# Uso de variables globales con locks
+import threading
+
+# Global state con lock
+state_lock = threading.Lock()
+current_rom = 0
+current_angle = 0
+
+# En Main Thread (actualizar)
+with state_lock:
+    current_rom = max_angle
+
+# En Flask route (leer)
+@app.route('/api/current_rom')
+def get_rom():
+    with state_lock:
+        return jsonify({'rom': current_rom})
+```
+
+**Mecanismo**: Lock explícito para variables compartidas
+**Sincronización**: `threading.Lock()`
+
+---
+
+### 📊 DIAGRAMA DE THREADING
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  MAIN THREAD (ANÁLISIS DE VIDEO) - HIGHEST PRIORITY     │
+│  ↓ Captura → MediaPipe → Ángulos → Validación → Display│
+│  ↓ FPS: 45-60                                           │
+│  ↓ NO BLOQUEANTE                                        │
+└───────────────┬─────────────────────┬───────────────────┘
+                │                     │
+                │ Events              │ Events
+                ↓                     ↓
+    ┌───────────────────┐    ┌──────────────────┐
+    │  VOICE THREAD     │    │  ESP32 THREAD    │
+    │  (Daemon)         │    │  (Daemon)        │
+    │  Priority: LOW    │    │  Priority: MED   │
+    │  ↓ TTS Engine     │    │  ↓ Serial USB    │
+    │  ↓ BLOQUEANTE     │    │  ↓ Commands      │
+    │  (Solo aquí)      │    │  (Ocasional)     │
+    └───────────────────┘    └──────────────────┘
+
+    ┌──────────────────────────────────────────┐
+    │  FLASK SERVER (Solo modo web)            │
+    │  ↓ HTTP Requests                         │
+    │  ↓ 1 thread por request                  │
+    │  ↓ Lee estado con locks                  │
+    └──────────────────────────────────────────┘
+```
+
+---
+
+### ⚡ IMPACTO EN RENDIMIENTO
+
+| Thread | CPU Usage | Impacto en FPS | Notas |
+|--------|-----------|----------------|-------|
+| MAIN | 60-80% (1 core) | Base (45-60 FPS) | MediaPipe usa internamente 3-4 cores |
+| VOICE | 5-10% (picos) | <2% | Solo cuando habla (cada 3s mín.) |
+| ESP32 | <1% | 0% | Solo durante ajuste de altura |
+| FLASK | 5-15% | 0% | En core separado |
+| **TOTAL** | ~70-90% | **FPS: 43-58** | <5% overhead vs. sin threads |
+
+---
+
+### 🎯 REGLAS DE ORO PARA THREADING EN BIOTRACK
+
+1. ✅ **MAIN thread NUNCA se bloquea** → Garantiza FPS constante
+2. ✅ **Threads daemon** para tareas secundarias → Mueren con el programa
+3. ✅ **Colas thread-safe** para comunicación → Sin race conditions
+4. ✅ **Throttling en Voice** (mín 3s) → Evita saturación
+5. ✅ **Locks solo para variables globales compartidas** → Flask ↔ Main
+6. ❌ **NO crear/destruir threads en runtime** → Overhead y memory leaks
+7. ❌ **NO usar multiprocessing** → Overhead de IPC innecesario
+8. ❌ **NO paralelizar MediaPipe** → Ya está optimizado internamente
+
+---
+
+### 🔧 IMPLEMENTACIÓN PRÁCTICA
+
+#### **Ejemplo: Inicialización en `app.py`**
+```python
+import threading
+from voice_system.tts_engine import VoiceThread
+from hardware.esp32_serial import ESP32SerialThread
+
+# Inicializar threads
+voice_thread = VoiceThread(voice_queue)
+voice_thread.start()  # Daemon automático
+
+esp32_thread = ESP32SerialThread(port='COM3')
+esp32_thread.start()  # Daemon automático
+
+# Main loop continúa sin cambios
+while True:
+    # Procesamiento de video...
+    pass
+
+# Threads mueren automáticamente al salir
+```
+
+#### **Ejemplo: Agregar mensaje de voz desde Main**
+```python
+# En cualquier parte del análisis
+if torso_tilted:
+    voice_queue.add_message(
+        "Evita inclinar el tronco hacia adelante",
+        priority='HIGH'
+    )
+    # NO espera respuesta, continúa inmediatamente
+```
+
+---
+
+### 🧪 TESTING Y DEBUGGING DE THREADS
+
+```python
+# Verificar threads activos
+import threading
+print(f"Threads activos: {threading.active_count()}")
+for t in threading.enumerate():
+    print(f"  - {t.name} (daemon={t.daemon})")
+
+# Ejemplo de output esperado:
+# Threads activos: 4
+#   - MainThread (daemon=False)
+#   - VoiceThread (daemon=True)
+#   - ESP32SerialThread (daemon=True)
+#   - Thread-1 (daemon=True)  # Flask workers
+```
+
+---
+
+### 📚 RECURSOS Y LIBRERÍA
+
+**Threading nativo de Python**:
+```python
+import threading
+import queue
+from collections import deque
+```
+
+**NO necesitamos**:
+- ❌ `multiprocessing` (overhead de IPC)
+- ❌ `asyncio` (complejidad innecesaria)
+- ❌ `concurrent.futures` (overkill para este caso)
+
+**Justificación**: Threading básico de Python es suficiente y eficiente para nuestro caso de uso.
+
+---
+
 ## 💾 GESTIÓN DE DATOS Y ALMACENAMIENTO
 
 ### Durante la Sesión (Tiempo Real)
@@ -145,10 +475,29 @@ self.pose = mp_pose.Pose(
 - **Flask**: Framework web para interfaz de usuario
 - **HTML/CSS/JavaScript**: Templates y visualización
 - **AJAX**: Comunicación asíncrona con backend
+- **SQLite**: Base de datos para almacenamiento de usuarios y mediciones
+
+### Sistema de Voz Guiada (NUEVO)
+- **pyttsx3**: Motor Text-to-Speech offline (Windows SAPI5)
+- **gTTS**: Google Text-to-Speech (alternativa online)
+- **pygame/playsound**: Reproducción de audio
+- **Threading**: Ejecución asíncrona de voz para no bloquear análisis
 
 ### Estructura del Proyecto
 ```
 biomechanical_analysis/
+├── analyzers/                      # Analizadores de articulaciones
+│   ├── base_analyzer.py           # Clase base con integración de voz
+│   ├── shoulder_profile.py
+│   ├── shoulder_frontal.py
+│   ├── elbow_profile.py
+│   ├── hip_profile.py
+│   ├── hip_frontal.py
+│   ├── knee_profile.py
+│   ├── ankle_profile.py
+│   ├── ankle_frontal.py
+│   ├── rom_evaluator.py           # Evaluador de ROM con feedback
+│   └── posture_validator.py       # Detector de errores de postura
 ├── core/
 │   ├── angle_debugger.py
 │   ├── base_analyzer.py
@@ -157,29 +506,111 @@ biomechanical_analysis/
 │   ├── fixed_references.py
 │   ├── mediapipe_config.py
 │   └── orientation_detector.py
-├── exercises/
-├── guides/
-│   └── neck_exercise_guide.py
-├── joints/
+├── utils/
+│   ├── validators.py
+│   ├── decorators.py
+│   ├── pdf_generator.py
+│   ├── rom_standards.py
+│   ├── helpers.py
+│   └── audio_utils.py             # Utilidades de audio
 └── tests/
-    └── test_shoulder.py.py  ← MÓDULO ACTUAL
+    ├── test_shoulder_frontal.py
+    ├── test_shoulder_profile.py
+    ├── test_elbow_profile.py
+    ├── test_hip_frontal.py
+    ├── test_hip_profile.py
+    ├── test_knee_profile.py
+    ├── test_ankle_profile.py
+    └── test_ankle_frontal.py
 
 biomechanical_web_interface/
 ├── app.py
-├── config/
-│   ├── config_loader.py
-│   ├── exercises.json
-│   └── logging_config.py
-├── handlers/
+├── config.py
+├── requirements.txt
+├── instance/
+│   └── biotrack.db                # Base de datos SQLite
+├── models/                         # Modelos de datos
+│   ├── user.py
+│   ├── measurement.py
+│   ├── exercise.py
+│   ├── session.py
+│   └── voice_feedback.py          # Modelo de retroalimentación de voz
+├── controllers/                    # Controladores
+│   ├── auth_controller.py
+│   ├── measurement_controller.py
+│   ├── history_controller.py
+│   ├── esp32_controller.py
+│   ├── pdf_controller.py
+│   └── voice_controller.py        # Control de mensajes de voz
+├── voice_system/                   # NUEVO: Sistema de voz guiada
+│   ├── tts_engine.py              # Motor Text-to-Speech
+│   ├── audio_player.py            # Reproductor de audio
+│   ├── message_queue.py           # Cola de mensajes con prioridades
+│   ├── voice_phrases.py           # Frases predefinidas por ejercicio
+│   └── speech_config.py           # Configuración de voz
+├── audio_cache/                    # NUEVO: Cache de audios
+│   ├── generated/                 # Audios generados dinámicamente
+│   └── prerecorded/               # Audios pregrabados por ejercicio
+│       ├── shoulder_profile/
+│       ├── shoulder_frontal/
+│       ├── elbow_profile/
+│       ├── hip_profile/
+│       ├── hip_frontal/
+│       ├── knee_profile/
+│       ├── ankle_profile/
+│       └── ankle_frontal/
+├── hardware/                       # Control de hardware
+│   ├── esp32_serial.py            # Comunicación serial con ESP32
+│   ├── camera_controller.py       # Control de altura de cámara
+│   └── arduino_sketch/
+│       └── camera_height_control.ino
+├── routes/                         # Rutas Flask
+│   ├── main.py
+│   ├── auth.py
+│   ├── measurement.py
+│   ├── history.py
+│   ├── calibration.py
+│   └── api.py
 ├── static/
 │   ├── css/
+│   │   ├── main.css
+│   │   ├── dashboard.css
+│   │   ├── measurement.css
+│   │   ├── history.css
+│   │   └── voice_controls.css     # Estilos para controles de voz
 │   ├── js/
+│   │   ├── main.js
+│   │   ├── video_stream.js
+│   │   ├── measurement.js
+│   │   ├── charts.js
+│   │   ├── esp32_control.js
+│   │   ├── history.js
+│   │   └── voice_feedback.js      # Reproducción de audio frontend
 │   └── images/
+│       ├── exercise_icons/
+│       └── feedback/
+│           ├── optimal.svg
+│           ├── good.svg
+│           ├── limited.svg
+│           ├── poor.svg
+│           ├── voice_on.svg       # Íconos de voz
+│           └── voice_off.svg
 └── templates/
-    ├── analysis.html
-    ├── dashboard.html
-    ├── profile.html
-    └── ...
+    ├── base.html
+    ├── auth/
+    ├── dashboard/
+    ├── measurement/
+    │   ├── select_exercise.html
+    │   ├── calibrate.html
+    │   ├── live_analysis.html     # Con controles de voz
+    │   └── results.html
+    ├── history/
+    └── components/
+        ├── navbar.html
+        ├── feedback_card.html
+        ├── rom_gauge.html
+        ├── exercise_card.html
+        └── voice_controls.html    # Panel de control de voz
 ```
 
 ---
@@ -335,20 +766,39 @@ El sistema detecta automáticamente si el usuario está:
 ### Sesión de Análisis (Usuario)
 1. Usuario accede a la interfaz web
 2. Selecciona ejercicio/segmento a analizar
-3. Se posiciona frente a la cámara
-4. Sistema detecta automáticamente orientación (PERFIL/FRONTAL)
-5. Usuario realiza movimiento **lentamente y de forma controlada**
-6. Usuario se mantiene **estático en posición final** durante procesamiento
-7. Sistema calcula **promedio de últimos frames**
-8. Se registra **ROM máximo** alcanzado
-9. Resultados se guardan en historial del usuario
-10. Usuario puede descargar reporte en PDF posteriormente
+3. Sistema calcula altura óptima de cámara → ESP32 ajusta altura
+4. **VOZ**: "Colócate de perfil. Vamos a medir la flexión de hombro"
+5. Sistema detecta automáticamente orientación (PERFIL/FRONTAL)
+6. **VOZ**: "Posición correcta. Puedes comenzar"
+7. Usuario realiza movimiento **lentamente y de forma controlada**
+8. **VOZ**: Guía en tiempo real ("Levanta el brazo más alto", "Excelente técnica")
+9. **VOZ**: Correcciones si detecta errores ("Evita inclinar el tronco")
+10. Usuario se mantiene **estático en posición final** durante procesamiento
+11. Sistema calcula **promedio de últimos frames**
+12. Se registra **ROM máximo** alcanzado
+13. **VOZ**: "Has alcanzado 145 grados. Excelente ROM"
+14. Resultados se guardan en historial del usuario
+15. Usuario puede descargar reporte en PDF posteriormente
 
-### Procesamiento Backend
+### Procesamiento Backend (con Voz)
 ```
 Captura Frame → MediaPipe Pose → Detección Orientación → 
-Cálculo Ángulos → Actualizar Estadísticas → 
+Cálculo Ángulos → Validación de Postura → 
+Actualizar Estadísticas → Generar Mensaje de Voz (thread) →
 Renderizado Visual → Display
+```
+
+### Sistema de Voz Guiada (Multithreading)
+```
+Thread Principal (Análisis)
+    ↓
+Detecta evento/error → Agrega mensaje a cola con prioridad
+    ↓
+Thread de Voz (independiente)
+    ↓
+Verifica cola cada N segundos → Reproduce mensaje TTS
+    ↓
+NO bloquea procesamiento de video (FPS mantiene 45-60)
 ```
 
 ---
@@ -397,31 +847,40 @@ signo = +1 si cross_product > 0 else -1
 - [ ] Agregar buffer de frames para promediado
 - [ ] Implementar sistema de profiling (FPS, latencia)
 - [ ] Threading básico (captura + procesamiento)
+- [ ] **Sistema de voz guiada con TTS**
+- [ ] **Validador de postura en tiempo real**
 
 ### Fase 2: Modularización y Arquitectura
-- [ ] Crear clase base `BaseJointAnalyzer`
+- [ ] Crear clase base `BaseJointAnalyzer` con hooks de voz
 - [ ] Extraer lógica común de detección de orientación
 - [ ] Sistema de configuración por ejercicio (JSON)
 - [ ] Factory pattern para crear analizadores
+- [ ] **Integrar PostureValidator en base_analyzer**
+- [ ] **Sistema de frases de voz por ejercicio**
 
 ### Fase 3: Expansión a Otros Segmentos
-- [ ] Implementar analizador de codo
-- [ ] Implementar analizador de cadera
-- [ ] Implementar analizador de rodilla
-- [ ] Implementar analizador de tobillo (con mejoras especiales)
+- [ ] Implementar analizador de codo con voz
+- [ ] Implementar analizador de cadera con voz
+- [ ] Implementar analizador de rodilla con voz
+- [ ] Implementar analizador de tobillo (con mejoras especiales) con voz
+- [ ] **Grabar audios pregrabados profesionales (opcional)**
 
 ### Fase 4: Integración Web Completa
 - [ ] Streaming de video a navegador
 - [ ] Almacenamiento de ROM en base de datos
+- [ ] **Almacenamiento de log de mensajes de voz por sesión**
 - [ ] Generación de reportes PDF
 - [ ] Dashboard de progreso del usuario
 - [ ] Sistema de login y perfiles
+- [ ] **Control ESP32 para altura de cámara vía serial USB**
 
 ### Fase 5: Características Avanzadas
 - [ ] Comparación con valores normativos
 - [ ] Detección de compensaciones posturales
 - [ ] Exportación de datos (CSV, JSON)
 - [ ] Modo de calibración personalizada
+- [ ] **Modo silencioso / control de volumen de voz**
+- [ ] **Estadísticas de errores de postura más comunes**
 - [ ] Integración con dispositivos externos (opcional)
 
 ---
@@ -492,7 +951,7 @@ signo = +1 si cross_product > 0 else -1
 - **Repositorio**: CLEAN_VERSION_BIOTRACK
 - **Owner**: MarianaCO7
 - **Branch**: main
-- **Última actualización**: Noviembre 11, 2025
+- **Última actualización**: Noviembre 14, 2025
 
 ---
 
@@ -504,6 +963,9 @@ signo = +1 si cross_product > 0 else -1
 3. ✅ **MediaPipe model_complexity=1**: Balance óptimo velocidad/precisión
 4. ✅ **Sistema goniómetro (0-180°)**: Familiar para usuarios médicos/educativos
 5. ✅ **No almacenar video**: Privacidad y eficiencia de almacenamiento
+6. ✅ **Threading selectivo (4 threads)**: Balance rendimiento/complejidad
+7. ✅ **TTS offline (pyttsx3)**: No requiere internet, menor latencia
+8. ✅ **Daemon threads para voz/ESP32**: Simplicidad en gestión de recursos
 
 ### Lecciones Aprendidas
 - Hardware potente no siempre = mejor solución
@@ -511,6 +973,9 @@ signo = +1 si cross_product > 0 else -1
 - Importancia de entender el caso de uso real
 - Balance entre precisión y velocidad
 - Detección de landmarks varía según articulación
+- **Threading simple > Threading complejo** para este proyecto
+- **Voz en thread separado preserva FPS del análisis**
+- **Cola de mensajes evita saturación de voz**
 
 ---
 
