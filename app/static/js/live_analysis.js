@@ -33,6 +33,9 @@ class LiveAnalysisController {
     init() {
         console.log('[LiveAnalysis] Inicializando con config:', this.config);
         
+        // Crear overlay de pantalla completa
+        createFullscreenOverlay();
+        
         // Inicializar gráfico de ROM
         this.initROMChart();
         
@@ -43,7 +46,7 @@ class LiveAnalysisController {
         setTimeout(() => {
             const overlay = document.getElementById('loadingOverlay');
             if (overlay) {
-                overlay.classList.add('hidden');
+                overlay.style.display = 'none';
             }
         }, 3000);
         
@@ -157,6 +160,11 @@ class LiveAnalysisController {
                 document.getElementById('startBtn').disabled = true;
                 document.getElementById('stopBtn').disabled = false;
                 
+                // Sincronizar botones de pantalla completa
+                if (isFullscreenMode) {
+                    syncButtonStates();
+                }
+                
                 // Iniciar polling de datos
                 this.startDataPolling();
                 
@@ -192,6 +200,11 @@ class LiveAnalysisController {
                 // Actualizar UI
                 document.getElementById('startBtn').disabled = false;
                 document.getElementById('stopBtn').disabled = true;
+                
+                // Sincronizar botones de pantalla completa
+                if (isFullscreenMode) {
+                    syncButtonStates();
+                }
                 
                 // Mostrar modal de resultados
                 if (showModal) {
@@ -340,6 +353,11 @@ class LiveAnalysisController {
         if (this.romChart) {
             const angleValue = Math.abs(data.angle || data.left_angle || 0);
             this.updateChart(angleValue);
+        }
+        
+        // Si estamos en modo pantalla completa, actualizar también esas métricas
+        if (isFullscreenMode) {
+            updateFullscreenMetrics();
         }
     }
     
@@ -499,3 +517,243 @@ function saveResults() {
         liveAnalysisController.saveResults();
     }
 }
+
+// ============================================================================
+// MODO PANTALLA COMPLETA
+// ============================================================================
+
+let isFullscreenMode = false;
+let originalVideoParent = null;
+let fullscreenOverlay = null;
+
+// Crear el overlay dinámicamente al cargar la página
+function createFullscreenOverlay() {
+    if (fullscreenOverlay) return; // Ya existe
+    
+    fullscreenOverlay = document.createElement('div');
+    fullscreenOverlay.id = 'fullscreenOverlay';
+    fullscreenOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    `;
+    
+    fullscreenOverlay.innerHTML = `
+        <!-- Botón de cerrar -->
+        <button class="fullscreen-close" onclick="toggleFullscreen()" style="
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10001;
+        ">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        
+        <!-- Contenedor del video -->
+        <div id="fullscreenVideoContainer" style="
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px 120px 20px;
+        "></div>
+        
+        <!-- Controles flotantes -->
+        <div class="fullscreen-controls" style="
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 10001;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        ">
+            <button id="fullscreenStartBtn" class="btn btn-success btn-lg" onclick="startAnalysis()">
+                <i class="bi bi-play-fill"></i> Iniciar Análisis
+            </button>
+            <button id="fullscreenStopBtn" class="btn btn-danger btn-lg" onclick="stopAnalysis()" disabled>
+                <i class="bi bi-stop-fill"></i> Detener
+            </button>
+            <button id="fullscreenResetBtn" class="btn btn-warning btn-lg" onclick="resetROM()">
+                <i class="bi bi-arrow-clockwise"></i> Reiniciar ROM
+            </button>
+        </div>
+        
+        <!-- Métricas flotantes -->
+        <div class="fullscreen-metrics" style="
+            position: absolute;
+            top: 80px;
+            left: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 10001;
+        ">
+            <div class="metric-box" style="
+                background: rgba(0, 0, 0, 0.7);
+                padding: 15px 25px;
+                border-radius: 15px;
+                backdrop-filter: blur(10px);
+                border: 2px solid rgba(102, 126, 234, 0.3);
+                min-width: 200px;
+            ">
+                <div style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;">Ángulo Actual</div>
+                <div id="fullscreenCurrentAngle" style="font-size: 2rem; font-weight: 700; color: #00d4ff; text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);">0°</div>
+            </div>
+            <div class="metric-box" style="
+                background: rgba(0, 0, 0, 0.7);
+                padding: 15px 25px;
+                border-radius: 15px;
+                backdrop-filter: blur(10px);
+                border: 2px solid rgba(102, 126, 234, 0.3);
+                min-width: 200px;
+            ">
+                <div style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;">ROM Máximo</div>
+                <div id="fullscreenMaxROM" style="font-size: 2rem; font-weight: 700; color: #00d4ff; text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);">0°</div>
+            </div>
+            <div class="metric-box" style="
+                background: rgba(0, 0, 0, 0.7);
+                padding: 15px 25px;
+                border-radius: 15px;
+                backdrop-filter: blur(10px);
+                border: 2px solid rgba(102, 126, 234, 0.3);
+                min-width: 200px;
+            ">
+                <div style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;">Estado</div>
+                <div id="fullscreenPostureStatus" style="display: flex; align-items: center; gap: 8px; font-size: 1rem; color: white;">
+                    <i class="bi bi-hourglass-split"></i>
+                    <span>Detectando...</span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Agregar al body (fuera de cualquier contenedor)
+    document.body.appendChild(fullscreenOverlay);
+    console.log('[Fullscreen] Overlay creado y agregado al body');
+}
+
+function toggleFullscreen() {
+    // Asegurarse de que el overlay existe
+    if (!fullscreenOverlay) {
+        createFullscreenOverlay();
+    }
+    
+    const fullscreenContainer = document.getElementById('fullscreenVideoContainer');
+    const videoElement = document.getElementById('videoFeed');
+    
+    isFullscreenMode = !isFullscreenMode;
+    
+    if (isFullscreenMode) {
+        // Entrar en modo pantalla completa
+        originalVideoParent = videoElement.parentElement;
+        
+        // MOVER el video al contenedor de pantalla completa
+        fullscreenContainer.appendChild(videoElement);
+        
+        // Ajustar estilos del video para pantalla completa
+        videoElement.style.maxWidth = '100%';
+        videoElement.style.maxHeight = '100%';
+        videoElement.style.width = 'auto';
+        videoElement.style.height = 'auto';
+        videoElement.style.objectFit = 'contain';
+        videoElement.style.borderRadius = '10px';
+        videoElement.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.5)';
+        
+        // Mostrar overlay
+        fullscreenOverlay.style.display = 'flex';
+        
+        // Bloquear scroll del body
+        document.body.style.overflow = 'hidden';
+        
+        // Sincronizar estados de botones
+        syncButtonStates();
+        
+        // Actualizar métricas fullscreen
+        updateFullscreenMetrics();
+        
+        console.log('[Fullscreen] Modo pantalla completa activado');
+    } else {
+        // Salir de modo pantalla completa
+        if (originalVideoParent) {
+            // Restaurar estilos originales del video
+            videoElement.style.maxWidth = '';
+            videoElement.style.maxHeight = '';
+            videoElement.style.width = '';
+            videoElement.style.height = '';
+            videoElement.style.objectFit = '';
+            videoElement.style.borderRadius = '';
+            videoElement.style.boxShadow = '';
+            
+            // DEVOLVER el video a su contenedor original
+            originalVideoParent.appendChild(videoElement);
+        }
+        
+        // Ocultar overlay
+        fullscreenOverlay.style.display = 'none';
+        
+        // Restaurar scroll del body
+        document.body.style.overflow = '';
+        
+        console.log('[Fullscreen] Modo pantalla completa desactivado');
+    }
+}
+
+function syncButtonStates() {
+    // Sincronizar estado de botones entre vista normal y fullscreen
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    
+    const fsStartBtn = document.getElementById('fullscreenStartBtn');
+    const fsStopBtn = document.getElementById('fullscreenStopBtn');
+    const fsResetBtn = document.getElementById('fullscreenResetBtn');
+    
+    fsStartBtn.disabled = startBtn.disabled;
+    fsStopBtn.disabled = stopBtn.disabled;
+    fsResetBtn.disabled = resetBtn.disabled;
+}
+
+function updateFullscreenMetrics() {
+    // Copiar valores actuales a las métricas de pantalla completa
+    const currentAngle = document.getElementById('currentAngle').textContent;
+    const maxROM = document.getElementById('maxROM').textContent;
+    const postureStatus = document.getElementById('postureStatus').innerHTML;
+    
+    document.getElementById('fullscreenCurrentAngle').textContent = currentAngle;
+    document.getElementById('fullscreenMaxROM').textContent = maxROM;
+    document.getElementById('fullscreenPostureStatus').innerHTML = postureStatus;
+}
+
+// Tecla ESC para salir de pantalla completa
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isFullscreenMode) {
+        toggleFullscreen();
+    }
+});

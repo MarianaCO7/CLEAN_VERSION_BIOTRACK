@@ -38,7 +38,7 @@
                         <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">Cargando...</span>
                         </div>
-                        <p class="mt-2">Iniciando cámara...</p>
+                        <p id="loadingText" class="mt-2">Iniciando cámara...</p>
                     </div>
                 </div>
 
@@ -52,6 +52,9 @@
                     </button>
                     <button id="resetBtn" class="btn btn-warning btn-lg" onclick="resetROM()">
                         <i class="bi bi-arrow-clockwise"></i> Reiniciar ROM
+                    </button>
+                    <button id="fullscreenBtn" class="btn btn-info btn-lg" onclick="toggleFullscreen()">
+                        <i class="bi bi-arrows-fullscreen"></i> Pantalla Completa
                     </button>
                     <a href="{{ url_for('main.segment_exercises', segment_type=segment_type) }}" 
                        class="btn btn-secondary btn-lg">
@@ -185,6 +188,7 @@
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block styles %}
@@ -249,12 +253,8 @@
     z-index: 10;
 }
 
-.video-overlay.loading {
-    display: flex;
-}
-
 .video-overlay.hidden {
-    display: none;
+    display: none !important;
 }
 
 .video-controls {
@@ -397,43 +397,7 @@
     height: 200px;
 }
 
-/* Modal de resultados */
-.results-summary {
-    padding: 20px 0;
-}
 
-.result-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    border-bottom: 1px solid #eee;
-}
-
-.result-item:last-child {
-    border-bottom: none;
-}
-
-.result-label {
-    font-weight: 500;
-    color: #666;
-}
-
-.result-value {
-    font-weight: 600;
-    color: #333;
-}
-
-.result-value.highlight {
-    font-size: 1.5rem;
-    color: #667eea;
-}
-
-.result-value.badge {
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-}
 
 /* Responsive */
 @media (max-width: 992px) {
@@ -466,4 +430,82 @@
 
 <!-- Script principal de análisis -->
 <script src="{{ url_for('static', filename='js/live_analysis.js') }}"></script>
+
+<!-- Estilos del modal - DESPUÉS de Bootstrap para forzar sobrescritura -->
+<style>
+/* MODAL DE RESULTADOS - Forzar estilos sobre Bootstrap */
+#resultsModal {
+    z-index: 10500 !important; /* Mayor que fullscreen (9999) */
+}
+
+#resultsModal .modal-content {
+    background: #1a1a2e !important;
+    color: white !important;
+    border: 2px solid #667eea !important;
+}
+
+#resultsModal .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.3) !important;
+}
+
+#resultsModal .modal-title {
+    color: white !important;
+}
+
+#resultsModal .btn-close {
+    filter: brightness(0) invert(1) !important;
+}
+
+#resultsModal .modal-body {
+    background: #1a1a2e !important;
+}
+
+#resultsModal .modal-footer {
+    background: #1a1a2e !important;
+    border-top: 1px solid rgba(102, 126, 234, 0.3) !important;
+}
+
+#resultsModal .result-item {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.2) !important;
+    padding: 15px;
+    margin-bottom: 5px;
+    border-radius: 8px;
+}
+
+#resultsModal .result-label {
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-weight: 500;
+}
+
+#resultsModal .result-value {
+    color: white !important;
+    font-weight: 600;
+}
+
+#resultsModal .result-value.highlight {
+    color: #00d4ff !important;
+    font-size: 2rem !important;
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    font-weight: 700;
+}
+
+#resultsModal .result-value.badge {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    color: white !important;
+    padding: 8px 20px !important;
+    border-radius: 20px !important;
+    font-weight: 600;
+}
+
+/* Sobrescribir clases de Bootstrap para badges */
+#resultsModal .bg-danger,
+#resultsModal .bg-warning,
+#resultsModal .bg-success,
+#resultsModal .bg-info {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    color: white !important;
+}
+</style>
 {% endblock %}

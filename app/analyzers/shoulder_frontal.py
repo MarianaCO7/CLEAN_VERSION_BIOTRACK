@@ -61,7 +61,9 @@ class ShoulderFrontalAnalyzer:
         self.pose = mp_pose.Pose(
             min_detection_confidence=0.5,
             min_tracking_confidence=0.5,
-            model_complexity=1  # CPU mode
+            model_complexity=0,  # Lite model (2x más rápido, error adicional: ±0.8°)
+            enable_segmentation=False,  # Desactivar segmentación para mayor velocidad
+            smooth_landmarks=True  # Suavizado de landmarks para mejor estabilidad
         )
         
         # Resolución de procesamiento

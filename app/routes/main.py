@@ -221,7 +221,7 @@ def segment_exercises(segment_type):
         'hip': {
             'name': 'Cadera',
             'description': 'Flexión, extensión, abducción y rotación de cadera',
-            'icon': 'hip_1.png',
+            'icon': 'hips_1.png',
             'exercises': [
                 {
                     'key': 'flexion',

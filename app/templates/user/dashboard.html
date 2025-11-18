@@ -101,11 +101,11 @@
         <div class="col-lg-4 col-md-6">
             <div class="quick-access-card">
                 <div class="card-icon shoulder">
-                    <img src="{{ url_for('static', filename='images/joints/shoulder_1.png') }}" alt="Hombro" class="joint-icon">
+                    <img src="{{ url_for('static', filename='images/joints_icons/shoulder_1.png') }}" alt="Hombro" class="joint-icon">
                 </div>
                 <div class="card-content">
                     <h4>Hombro</h4>
-                    <a href="#" class="quick-button" onclick="showComingSoon('Análisis de Hombro'); return false;">
+                    <a href="{{ url_for('main.segment_exercises', segment_type='shoulder') }}" class="quick-button">
                         Analizar <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
@@ -116,11 +116,11 @@
         <div class="col-lg-4 col-md-6">
             <div class="quick-access-card">
                 <div class="card-icon elbow">
-                    <img src="{{ url_for('static', filename='images/joints/elbow_1.png') }}" alt="Codo" class="joint-icon">
+                    <img src="{{ url_for('static', filename='images/joints_icons/elbow_1.png') }}" alt="Codo" class="joint-icon">
                 </div>
                 <div class="card-content">
                     <h4>Codo</h4>
-                    <a href="#" class="quick-button" onclick="showComingSoon('Análisis de Codo'); return false;">
+                    <a href="{{ url_for('main.segment_exercises', segment_type='elbow') }}" class="quick-button">
                         Analizar <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
@@ -131,11 +131,11 @@
         <div class="col-lg-4 col-md-6">
             <div class="quick-access-card">
                 <div class="card-icon knee">
-                    <img src="{{ url_for('static', filename='images/joints/knee_1.png') }}" alt="Rodilla" class="joint-icon">
+                    <img src="{{ url_for('static', filename='images/joints_icons/knee_1.png') }}" alt="Rodilla" class="joint-icon">
                 </div>
                 <div class="card-content">
                     <h4>Rodilla</h4>
-                    <a href="#" class="quick-button" onclick="showComingSoon('Análisis de Rodilla'); return false;">
+                    <a href="{{ url_for('main.segment_exercises', segment_type='knee') }}" class="quick-button">
                         Analizar <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
