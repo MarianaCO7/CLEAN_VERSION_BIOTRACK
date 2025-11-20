@@ -103,35 +103,6 @@
                 </div>
             </div>
 
-            <!-- Card de instrucciones -->
-            <div class="info-card mb-3">
-                <h4 class="info-card-title">
-                    <i class="bi bi-list-check"></i>
-                    Instrucciones
-                </h4>
-                <ol class="instructions-list">
-                    {% for instruction in instructions %}
-                    <li>{{ instruction }}</li>
-                    {% endfor %}
-                </ol>
-            </div>
-
-            <!-- Card de configuración -->
-            <div class="info-card mb-3">
-                <h4 class="info-card-title">
-                    <i class="bi bi-gear"></i>
-                    Configuración de Cámara
-                </h4>
-                <ul class="setup-list">
-                    {% for setup_item in setup %}
-                    <li>
-                        <i class="bi bi-check-circle"></i>
-                        {{ setup_item }}
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-
             <!-- Gráfico de ROM (opcional - implementar después) -->
             <div class="info-card">
                 <h4 class="info-card-title">
