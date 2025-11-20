@@ -32,8 +32,41 @@ api_bp = Blueprint('api', __name__)
 # Logger para uso fuera del contexto de Flask
 logger = logging.getLogger(__name__)
 
+# ============================================================================
+# CACHE GLOBAL DE ANALYZERS
+# ============================================================================
+# Diccionario para cachear analyzers por tipo (evita re-inicialización de 25s)
+_ANALYZER_CACHE = {}
+
 # Variable global para el analyzer actual (compartida entre requests)
 current_analyzer = None
+
+def get_cached_analyzer(analyzer_type: str, analyzer_class):
+    """
+    Obtiene analyzer cacheado o crea uno nuevo
+    
+    Primera llamada: Inicializa MediaPipe (~25 segundos)
+    Siguientes llamadas: Reutiliza analyzer cacheado (0 segundos)
+    
+    Args:
+        analyzer_type: Tipo de analyzer ('shoulder_profile', 'shoulder_frontal', etc.)
+        analyzer_class: Clase del analyzer a instanciar
+    
+    Returns:
+        Analyzer inicializado y listo para usar
+    """
+    if analyzer_type not in _ANALYZER_CACHE:
+        logger.info(f"🔧 Creando NUEVO analyzer '{analyzer_type}' - Primera inicialización (~25s)")
+        _ANALYZER_CACHE[analyzer_type] = analyzer_class(
+            processing_width=640,
+            processing_height=480,
+            show_skeleton=False
+        )
+        logger.info(f"✅ Analyzer '{analyzer_type}' listo y cacheado")
+    else:
+        logger.info(f"⚡ Reutilizando analyzer cacheado '{analyzer_type}' (0s)")
+    
+    return _ANALYZER_CACHE[analyzer_type]
 
 
 # ============================================================================
@@ -269,21 +302,16 @@ def video_feed():
                    b'Content-Type: image/jpeg\r\n\r\n' + error_frame + b'\r\n')
             return
         
-        # Crear analyzer si no existe
-        if current_analyzer is None or type(current_analyzer).__name__ != analyzer_class.__name__:
-            if current_analyzer is not None:
-                current_analyzer.cleanup()
-            current_analyzer = analyzer_class(
-                processing_width=640,
-                processing_height=480,
-                show_skeleton=False  # Cambiar a True si quieres ver skeleton completo
-            )
-            logger.info(f"Analyzer '{analyzer_type}' inicializado para usuario '{user_id}'")
+        # Obtener analyzer cacheado (reutiliza si ya existe)
+        current_analyzer = get_cached_analyzer(analyzer_type, analyzer_class)
         
         # Adquirir cámara (context manager automático)
         try:
             with camera_manager.acquire_camera(user_id=user_id, width=1280, height=720) as cap:
                 logger.info(f"Cámara adquirida por '{user_id}' - Iniciando stream")
+                
+                frame_count = 0
+                mediapipe_ready = False
                 
                 while True:
                     ret, frame = cap.read()
@@ -292,19 +320,59 @@ def video_feed():
                         logger.warning("No se pudo leer frame de la cámara")
                         break
                     
-                    # Procesar frame con analyzer
-                    try:
-                        processed_frame = current_analyzer.process_frame(frame)
-                    except Exception as e:
-                        logger.error(f"Error al procesar frame: {e}")
-                        processed_frame = _create_error_frame(f"Error en procesamiento: {str(e)}")
+                    frame_count += 1
+                    
+                    # Verificar si MediaPipe está listo
+                    if not mediapipe_ready:
+                        # Chequear si el pose model ya se inicializó
+                        mediapipe_ready = hasattr(current_analyzer, 'pose') and current_analyzer.pose is not None
+                        
+                        if not mediapipe_ready:
+                            # MediaPipe AÚN inicializando - Mostrar frame CRUDO (sin procesar)
+                            # Esto da feedback visual inmediato al usuario (ve su cámara en ~2s)
+                            if frame_count % 30 == 0:  # Log cada 30 frames (~1 segundo)
+                                logger.debug(f"⏳ MediaPipe inicializando... Frame {frame_count}")
+                            
+                            # Frame crudo con overlay de "Cargando..."
+                            raw_frame = frame.copy()
+                            cv2.putText(
+                                raw_frame,
+                                "Inicializando MediaPipe...",
+                                (50, 50),
+                                cv2.FONT_HERSHEY_SIMPLEX,
+                                0.8,
+                                (0, 255, 255),  # Amarillo
+                                2
+                            )
+                            cv2.putText(
+                                raw_frame,
+                                "El skeleton aparecera en unos segundos",
+                                (50, 90),
+                                cv2.FONT_HERSHEY_SIMPLEX,
+                                0.6,
+                                (255, 255, 255),  # Blanco
+                                1
+                            )
+                            
+                            processed_frame = raw_frame
+                        else:
+                            # MediaPipe LISTO - Primera vez que procesamos
+                            logger.info(f"✅ MediaPipe listo! Iniciando procesamiento con skeleton")
+                            processed_frame = current_analyzer.process_frame(frame)
+                    else:
+                        # MediaPipe ya estaba listo - Procesamiento normal
+                        try:
+                            processed_frame = current_analyzer.process_frame(frame)
+                        except Exception as e:
+                            logger.error(f"Error al procesar frame: {e}")
+                            processed_frame = _create_error_frame(f"Error en procesamiento: {str(e)}")
                     
                     # Codificar frame como JPEG
                     try:
                         ret_encode, buffer = cv2.imencode(
                             '.jpg', 
                             processed_frame, 
-                            [cv2.IMWRITE_JPEG_QUALITY, 85]  # 85% calidad (balance velocidad/calidad)
+                            [cv2.IMWRITE_JPEG_QUALITY, 70]  # 70% calidad (optimizado para velocidad)
                         )
                         
                         if not ret_encode:
